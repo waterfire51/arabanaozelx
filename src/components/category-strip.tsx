@@ -21,7 +21,7 @@ export function CategoryStrip({ categories }: { categories: SiteCategory[] }) {
       <div className="site-container">
         <a href="https://plakacim.com/?utm_source=www.otodark.com" target="_blank" rel="noreferrer">
           <video autoPlay loop muted playsInline className="mb-4 h-auto w-full rounded-sm object-fill">
-            <source src="/assets/video/toptan-plakalik-ads-2.mp4" type="video/mp4" />
+            <source src={assetPath("video/toptan-plakalik-ads-2.mp4")} type="video/mp4" />
           </video>
         </a>
 

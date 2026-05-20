@@ -11,17 +11,7 @@ export function hrefForSlug(slug: string) {
   return clean ? `/${clean}` : "/";
 }
 
-export function assetPath(path: string | null | undefined) {
-  if (!path) {
-    return "/assets/img/ddark.png";
-  }
-
-  if (/^https?:\/\//i.test(path)) {
-    return path;
-  }
-
-  return `/${path.replace(/^\/+/, "")}`;
-}
+export { assetPath } from "@/lib/assets";
 
 export function formatPrice(value: number) {
   return new Intl.NumberFormat("tr-TR", {

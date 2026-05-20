@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookOpen, Home, Menu, Phone, Rss, Truck, X } from "lucide-react";
 import { useState } from "react";
 import type { SiteCategory } from "@/lib/types";
+import { assetPath } from "@/lib/assets";
 
 function categoryHref(slug: string) {
   const map: Record<string, string> = {
@@ -50,7 +51,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
       <header className="fixed left-0 top-0 z-[999] w-full border-b border-[#f1f1f1] bg-white">
         <div className="site-container flex h-[78px] items-center justify-between gap-4 max-md:h-[66px]">
           <Link href="/" aria-label="Anasayfa" className="flex items-center">
-            <img src="/assets/img/logo.png" alt="Otodark" className="h-auto w-[118px] max-md:w-[96px]" />
+            <img src={assetPath("site_gorsel/logo.png")} alt="Otodark" className="h-auto w-[118px] max-md:w-[96px]" />
           </Link>
 
           <div className="hidden flex-1 justify-center gap-2 lg:flex">
@@ -111,7 +112,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
         }`}
       >
         <div className="text-center">
-          <img src="/assets/img/ddark.png" alt="Dark Otomotiv" className="mx-auto mb-3 h-16 w-16 rounded-full object-contain" />
+          <img src={assetPath("site_gorsel/ddark.png")} alt="Dark Otomotiv" className="mx-auto mb-3 h-16 w-16 rounded-full object-contain" />
           <p className="font-semibold text-[#06142d]">
             Dark Otomotiv <span className="block text-xs font-normal">www.otodark.com</span>
           </p>

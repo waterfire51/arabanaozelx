@@ -1,4 +1,6 @@
 import { Plus, Save, Trash2 } from "lucide-react";
+import { AdminImageUpload } from "@/components/admin-image-upload";
+import { assetPath } from "@/lib/assets";
 import { getAdminCategories, getAdminProducts } from "@/lib/data";
 import { formatPrice } from "@/lib/paths";
 import { deleteProduct, saveProduct } from "../actions";
@@ -32,7 +34,7 @@ export default async function AdminProductsPage() {
         {products.map((product) => (
           <details key={product.slug} className="rounded-lg bg-white p-5 shadow-sm">
             <summary className="grid cursor-pointer gap-3 md:grid-cols-[80px_1fr_auto] md:items-center">
-              <img src={product.imagePath} alt="" className="h-20 w-20 rounded bg-gray-100 object-contain p-2" />
+              <img src={assetPath(product.imagePath, product.slug)} alt="" className="h-20 w-20 rounded bg-gray-100 object-contain p-2" />
               <span>
                 <span className="block font-black text-black">{product.name}</span>
                 <span className="text-sm text-gray-500">/{product.slug}</span>
@@ -102,10 +104,12 @@ function ProductForm({
             ))}
           </select>
         </label>
-        <label>
-          <span className="form-label">Görsel Yolu</span>
-          <input name="imagePath" className="form-input" defaultValue={product?.imagePath || "/assets/img/urunler/1.webp"} required />
-        </label>
+        <div className="md:col-span-2">
+          <AdminImageUpload
+            slug={product?.slug || ""}
+            defaultPath={product?.imagePath || "urun_gorsel/1.webp"}
+          />
+        </div>
         <label>
           <span className="form-label">Rozet</span>
           <input name="badge" className="form-input" defaultValue={product?.badge || ""} />

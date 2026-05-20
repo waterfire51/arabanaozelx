@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { migrateLegacyAssetPath, normalizeStoredAssetPath } from "@/lib/assets";
 import { normalizeLegacySlug } from "@/lib/paths";
 import { requireAdmin } from "@/lib/auth";
 
@@ -46,7 +47,9 @@ export async function saveProduct(formData: FormData) {
   const id = String(formData.get("id") || "");
   const slug = normalizeLegacySlug(String(formData.get("slug") || ""));
   const name = String(formData.get("name") || "");
-  const imagePath = String(formData.get("imagePath") || "");
+  const imagePath = normalizeStoredAssetPath(
+    migrateLegacyAssetPath(String(formData.get("imagePath") || ""), slug)
+  );
   const price = numberValue(formData.get("price"));
   const categoryId = String(formData.get("categoryId") || "");
   const variants = parseVariants(String(formData.get("variants") || ""), price);

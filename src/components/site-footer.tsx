@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Home, MessageCircle, Phone } from "lucide-react";
+import { assetPath } from "@/lib/assets";
 
 const productLinks = [
   ["Işıklı Oto Plakalık", "/plplakalik/otomobil"],
@@ -46,7 +47,7 @@ export function SiteFooter() {
       <section className="site-container mt-10 bg-white px-4 py-8 shadow-sm">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <img src="/assets/img/logo.png" alt="Otodark logo" className="mb-4 max-w-full" />
+            <img src={assetPath("site_gorsel/logo.png")} alt="Otodark logo" className="mb-4 max-w-full" />
             <p>
               <b>Adres:</b> Fevziçakmak Mah. Okyar Cad. Kobisan 4. San. Sit. A3 Blok No:18/3A Karatay/Konya
             </p>
@@ -100,7 +101,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 text-center">
-          <img src="/assets/img/visa-master-3d-iyzico.png" alt="visa master iyzico" className="mx-auto max-w-[260px]" />
+          <img src={assetPath("site_gorsel/visa-master-3d-iyzico.png")} alt="visa master iyzico" className="mx-auto max-w-[260px]" />
           <p className="mt-4">Copyright 2026 © Otodark.com</p>
         </div>
       </section>

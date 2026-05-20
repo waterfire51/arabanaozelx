@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { SitePage } from "@/lib/types";
+import { assetPath } from "@/lib/assets";
 import { TrackOrder } from "./track-order";
 
 function Gallery() {
@@ -8,8 +9,8 @@ function Gallery() {
       {Array.from({ length: 28 }, (_, index) => {
         const name = String(index + 1).padStart(3, "0");
         return (
-          <a key={name} href={`/assets/img/wp-musteri/${name}.jpg`} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg bg-gray-100">
-            <img src={`/assets/img/wp-musteri/${name}.jpg`} alt={`Müşteri görseli ${name}`} className="h-44 w-full object-cover transition hover:scale-105" />
+          <a key={name} href={assetPath(`wp_musteri_gorsel/${name}.jpg`)} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg bg-gray-100">
+            <img src={assetPath(`wp_musteri_gorsel/${name}.jpg`)} alt={`Müşteri görseli ${name}`} className="h-44 w-full object-cover transition hover:scale-105" />
           </a>
         );
       })}

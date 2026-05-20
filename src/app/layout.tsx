@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { assetPath } from "@/lib/assets";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <head>
-        <link rel="icon" href="/assets/img/ddark.png" />
+        <link rel="icon" href={assetPath("site_gorsel/ddark.png")} />
         <link rel="stylesheet" href="/assets/css/vendor.min.css" />
         <link rel="stylesheet" href="/assets/css/plugins/plugins.min.css" />
         <link rel="stylesheet" href="/assets/css/style.css" />

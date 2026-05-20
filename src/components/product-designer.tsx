@@ -146,7 +146,7 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
         <section className="otodark-card p-4">
           <div className="mb-5 grid gap-4 md:grid-cols-[220px_1fr]">
             <div className="grid place-items-center rounded-lg bg-[#f8f9f9] p-4">
-              <img src={assetPath(product.imagePath)} alt={product.name} className="max-h-[220px] object-contain" />
+              <img src={assetPath(product.imagePath, product.slug)} alt={product.name} className="max-h-[220px] object-contain" />
             </div>
             <div>
               {product.badge ? <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-bold text-white">{product.badge}</span> : null}
@@ -179,11 +179,11 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                 </div>
 
                 <div className="plate-preview">
-                  <img className="plate-symbol plate-symbol-left" src={`/inc_all/figures/${design.leftSymbol}.svg`} alt="" />
+                  <img className="plate-symbol plate-symbol-left" src={assetPath(`figures_gorsel/${design.leftSymbol}.svg`)} alt="" />
                   <div className="plate-text" style={{ color: design.textColor, textAlign: design.align, fontFamily: design.fontFamily }}>
                     {design.text || "PLAKALIK YAZISI"}
                   </div>
-                  <img className="plate-symbol plate-symbol-right" src={`/inc_all/figures/${design.rightSymbol}.svg`} alt="" />
+                  <img className="plate-symbol plate-symbol-right" src={assetPath(`figures_gorsel/${design.rightSymbol}.svg`)} alt="" />
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
