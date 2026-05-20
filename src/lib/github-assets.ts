@@ -7,7 +7,7 @@ import {
   normalizeStoredAssetPath,
   type AssetFolder
 } from "@/lib/assets";
-import { buildCategoryIconPath, buildCustomIconPath } from "@/lib/icons";
+import { buildCategoryCoverPath, buildCategoryIconPath, buildCustomIconPath } from "@/lib/icons";
 
 type GithubContentResponse = {
   sha?: string;
@@ -112,6 +112,19 @@ export async function uploadToAssetFolder(params: {
     repoPath,
     buffer: params.buffer,
     message: `upload: ${repoPath}`
+  });
+}
+
+export async function uploadCategoryCover(params: {
+  categorySlug: string;
+  filename: string;
+  buffer: Buffer;
+}) {
+  const repoPath = buildCategoryCoverPath(params.categorySlug, params.filename);
+  return uploadAssetToGithub({
+    repoPath,
+    buffer: params.buffer,
+    message: `category cover: ${repoPath}`
   });
 }
 

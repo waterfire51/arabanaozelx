@@ -235,6 +235,8 @@ function fallbackIconCatalog(): IconCatalogCategory[] {
     id: category.slug,
     name: category.name,
     slug: category.slug,
+    coverPath: null,
+    coverUrl: null,
     icons: seedIcons
       .filter((icon) => icon.categorySlug === category.slug)
       .map((icon, index) => ({
@@ -268,6 +270,8 @@ export async function getIconCatalog(): Promise<IconCatalogCategory[]> {
       id: category.id,
       name: category.name,
       slug: category.slug,
+      coverPath: category.coverPath,
+      coverUrl: category.coverPath ? assetPath(category.coverPath) : null,
       icons: category.icons.map((icon) => ({
         id: icon.id,
         name: icon.name,
@@ -300,6 +304,7 @@ export async function getAdminIconCategories() {
     return {
       categories: categories.map((category) => ({
         ...category,
+        coverUrl: category.coverPath ? assetPath(category.coverPath) : null,
         icons: category.icons.map((icon) => ({
           ...icon,
           url: assetPath(icon.filePath)

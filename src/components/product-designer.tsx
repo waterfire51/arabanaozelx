@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, Send } from "lucide-react";
 import type { SiteProduct, SiteProductVariant } from "@/lib/types";
-import { IconPicker } from "@/components/icon-picker";
+import { IconPicker, IconPickerModal } from "@/components/icon-picker";
 import { resolveSymbolAssetPath } from "@/lib/icons";
 import { assetPath, formatPrice } from "@/lib/paths";
 
@@ -99,6 +99,7 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string; orderNo?: string } | null>(null);
+  const [symbolPicker, setSymbolPicker] = useState<{ index: number; side: "left" | "right" } | null>(null);
 
   const total = useMemo(() => variant.unitPrice + variant.shipmentPrice, [variant]);
 
@@ -173,12 +174,27 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                 </div>
 
                 <div className="plate-preview">
-                  <img className="plate-symbol plate-symbol-left" src={resolveSymbolAssetPath(design.leftSymbol)} alt="" />
+                  <button
+                    type="button"
+                    className="plate-symbol plate-symbol-left cursor-pointer border-0 bg-transparent p-0 transition hover:scale-110 hover:opacity-90"
+                    title="Sol şekil seç"
+                    onClick={() => setSymbolPicker({ index, side: "left" })}
+                  >
+                    <img className="h-full w-full object-contain" src={resolveSymbolAssetPath(design.leftSymbol)} alt="" />
+                  </button>
                   <div className="plate-text" style={{ color: design.textColor, textAlign: design.align, fontFamily: design.fontFamily }}>
                     {design.text || "PLAKALIK YAZISI"}
                   </div>
-                  <img className="plate-symbol plate-symbol-right" src={resolveSymbolAssetPath(design.rightSymbol)} alt="" />
+                  <button
+                    type="button"
+                    className="plate-symbol plate-symbol-right cursor-pointer border-0 bg-transparent p-0 transition hover:scale-110 hover:opacity-90"
+                    title="Sağ şekil seç"
+                    onClick={() => setSymbolPicker({ index, side: "right" })}
+                  >
+                    <img className="h-full w-full object-contain" src={resolveSymbolAssetPath(design.rightSymbol)} alt="" />
+                  </button>
                 </div>
+                <p className="mt-2 text-center text-xs text-gray-500">Sol veya sağ şekle tıklayarak ikon seçin</p>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   <label>
@@ -213,14 +229,12 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                       <option value="right">Sağ</option>
                     </select>
                   </label>
-                  <div className="md:col-span-2">
+                  <div className="grid grid-cols-2 gap-3 md:col-span-2">
                     <IconPicker
                       label="Sol Şekil"
                       value={design.leftSymbol}
                       onChange={(path) => updateDesign(index, { leftSymbol: path })}
                     />
-                  </div>
-                  <div className="md:col-span-2">
                     <IconPicker
                       label="Sağ Şekil"
                       value={design.rightSymbol}
@@ -228,6 +242,18 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                     />
                   </div>
                 </div>
+
+                {symbolPicker?.index === index ? (
+                  <IconPickerModal
+                    open
+                    title={symbolPicker.side === "left" ? "Sol Şekil Seç" : "Sağ Şekil Seç"}
+                    value={symbolPicker.side === "left" ? design.leftSymbol : design.rightSymbol}
+                    onChange={(path) =>
+                      updateDesign(index, symbolPicker.side === "left" ? { leftSymbol: path } : { rightSymbol: path })
+                    }
+                    onClose={() => setSymbolPicker(null)}
+                  />
+                ) : null}
               </div>
             ))}
           </div>

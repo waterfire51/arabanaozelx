@@ -126,6 +126,7 @@ model IconCategory {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
+  coverPath String?
   sortOrder Int      @default(0)
   active    Boolean  @default(true)
   icons     Icon[]

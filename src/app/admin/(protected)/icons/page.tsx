@@ -1,4 +1,5 @@
 import { Plus, Save, Trash2 } from "lucide-react";
+import { AdminCategoryCoverUpload } from "@/components/admin-category-cover-upload";
 import { AdminIconUpload } from "@/components/admin-icon-upload";
 import { getAdminIconCategories } from "@/lib/data";
 import { deleteIcon, deleteIconCategory, saveIconCategory, updateIconMeta } from "../icon-actions";
@@ -53,11 +54,20 @@ export default async function AdminIconsPage() {
       <div className="grid gap-5">
         {categories.map((category: any) => (
           <section key={category.id} className="rounded-lg bg-white p-5 shadow-sm">
+            <AdminCategoryCoverUpload
+              categoryId={category.id}
+              categoryName={category.name}
+              coverPath={category.coverPath}
+            />
+
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-black text-black">{category.name}</h2>
                 <p className="text-sm text-gray-500">
                   /{category.slug} · {category._count?.icons ?? category.icons?.length ?? 0} ikon
+                  {category.coverPath ? (
+                    <span className="block font-mono text-xs text-gray-400">{category.coverPath}</span>
+                  ) : null}
                 </p>
               </div>
               <form action={deleteIconCategory}>

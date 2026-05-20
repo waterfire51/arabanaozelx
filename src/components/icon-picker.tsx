@@ -1,35 +1,106 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Upload } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronRight, Upload, X } from "lucide-react";
 import type { IconCatalogCategory } from "@/lib/icons";
 import { resolveSymbolAssetPath } from "@/lib/icons";
 
-type Props = {
-  label: string;
+type IconPickerModalProps = {
+  open: boolean;
+  title?: string;
   value: string;
   onChange: (path: string) => void;
+  onClose: () => void;
 };
 
-export function IconPicker({ label, value, onChange }: Props) {
+function CategoryCircle({
+  category,
+  selected,
+  onSelect
+}: {
+  category: IconCatalogCategory;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`flex flex-col items-center p-1 transition ${selected ? "rounded-lg bg-[#fff3a3]" : "bg-transparent"}`}
+      onClick={onSelect}
+      title={category.name}
+    >
+      <div className="icon-category-ring">
+        <div className="icon-category-inner">
+          {category.coverUrl ? (
+            <img src={category.coverUrl} alt="" className="h-full w-full object-cover" />
+          ) : category.icons[0] ? (
+            <img src={category.icons[0].url} alt="" className="h-full w-full object-contain p-1" />
+          ) : (
+            <span className="grid h-full w-full place-items-center text-lg font-black text-gray-300">
+              {category.name.charAt(0)}
+            </span>
+          )}
+        </div>
+      </div>
+      <span className="mt-1 max-w-[72px] text-center text-[9px] font-black uppercase leading-tight text-black">
+        {category.name}
+      </span>
+    </button>
+  );
+}
+
+export function IconPickerModal({ open, value, onChange, onClose }: IconPickerModalProps) {
   const [categories, setCategories] = useState<IconCatalogCategory[]>([]);
   const [activeSlug, setActiveSlug] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
 
-  useEffect(() => {
-    fetch("/api/icons")
-      .then((res) => res.json())
-      .then((data: { categories?: IconCatalogCategory[] }) => {
-        const list = data.categories ?? [];
-        setCategories(list);
-        setActiveSlug(list[0]?.slug || "");
-      })
-      .finally(() => setLoading(false));
+  const loadCatalog = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/icons");
+      const data = (await response.json()) as { categories?: IconCatalogCategory[] };
+      const list = data.categories ?? [];
+      setCategories(list);
+      setActiveSlug(list[0]?.slug || "");
+      setLoaded(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const activeCategory = categories.find((c) => c.slug === activeSlug);
+  useEffect(() => {
+    if (open) {
+      if (!loaded) {
+        loadCatalog();
+      }
+    } else {
+      setStatus("");
+    }
+  }, [open, loaded, loadCatalog]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
 
   async function handleCustomUpload(file: File | null) {
     if (!file) {
@@ -37,7 +108,7 @@ export function IconPicker({ label, value, onChange }: Props) {
     }
 
     setUploading(true);
-    setStatus("Özel ikon yükleniyor...");
+    setStatus("Yükleniyor...");
 
     try {
       const formData = new FormData();
@@ -56,7 +127,7 @@ export function IconPicker({ label, value, onChange }: Props) {
       }
 
       onChange(data.path);
-      setStatus("Özel ikon seçildi.");
+      onClose();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Yükleme başarısız.");
     } finally {
@@ -64,70 +135,120 @@ export function IconPicker({ label, value, onChange }: Props) {
     }
   }
 
+  function selectIcon(path: string) {
+    onChange(path);
+    onClose();
+  }
+
+  if (!open) {
+    return null;
+  }
+
+  const activeCategory = categories.find((c) => c.slug === activeSlug);
+
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-      <span className="form-label">{label}</span>
-
-      {value ? (
-        <div className="mb-3 flex items-center gap-3 rounded-lg bg-white p-2">
-          <img src={resolveSymbolAssetPath(value)} alt="" className="h-12 w-12 object-contain" />
-          <span className="break-all font-mono text-[10px] text-gray-500">{value}</span>
+    <div className="fixed inset-0 z-[1000] flex items-end justify-center p-0 sm:items-center sm:p-4" role="dialog" aria-modal aria-labelledby="icon-picker-title">
+      <button type="button" className="absolute inset-0 bg-black/50" onClick={onClose} aria-label="Kapat" />
+      <div className="relative z-10 flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-xl bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-xl">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-5">
+          <h2 id="icon-picker-title" className="text-sm font-black uppercase tracking-wide text-black sm:text-base">
+            Simge Seçimi Yapınız
+          </h2>
+          <button type="button" className="text-2xl font-light leading-none text-gray-500 hover:text-black" onClick={onClose} aria-label="Kapat">
+            <X size={22} />
+          </button>
         </div>
-      ) : null}
 
-      {loading ? (
-        <p className="text-xs text-gray-500">İkonlar yükleniyor...</p>
-      ) : (
-        <>
-          <div className="mb-2 flex flex-wrap gap-1">
-            {categories.map((category) => (
-              <button
-                key={category.slug}
-                type="button"
-                className={`rounded-full px-3 py-1 text-xs font-bold ${
-                  activeSlug === category.slug ? "bg-red-600 text-white" : "bg-white text-gray-700"
-                }`}
-                onClick={() => setActiveSlug(category.slug)}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <p className="py-12 text-center text-sm text-gray-500">Yükleniyor...</p>
+          ) : (
+            <>
+              <div className="border-b border-gray-100 px-3 py-4 sm:px-4">
+                <div className="grid grid-cols-4 gap-1 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+                  {categories.map((category) => (
+                    <CategoryCircle
+                      key={category.slug}
+                      category={category}
+                      selected={activeSlug === category.slug}
+                      onSelect={() => setActiveSlug(category.slug)}
+                    />
+                  ))}
+                </div>
+              </div>
 
-          <div className="grid max-h-40 grid-cols-4 gap-2 overflow-y-auto rounded-lg bg-white p-2 sm:grid-cols-6">
-            {(activeCategory?.icons ?? []).map((icon) => (
-              <button
-                key={icon.id}
-                type="button"
-                title={icon.name}
-                className={`rounded-lg border p-1 transition hover:border-red-500 ${
-                  value === icon.filePath ? "border-red-600 bg-red-50" : "border-gray-200"
-                }`}
-                onClick={() => onChange(icon.filePath)}
-              >
-                <img src={icon.url} alt={icon.name} className="mx-auto h-10 w-10 object-contain" />
-              </button>
-            ))}
-            {!activeCategory?.icons.length ? (
-              <p className="col-span-full py-4 text-center text-xs text-gray-500">Bu kategoride ikon yok.</p>
-            ) : null}
-          </div>
-        </>
-      )}
+              <div className="bg-[#f5f5f5] px-3 py-4 sm:px-4">
+                <div className="grid grid-cols-5 gap-1 sm:grid-cols-8 md:grid-cols-10">
+                  {(activeCategory?.icons ?? []).map((icon) => (
+                    <button
+                      key={icon.id}
+                      type="button"
+                      title={icon.name}
+                      className={`icon-tile aspect-square transition hover:ring-2 hover:ring-[#fff3a3] ${
+                        value === icon.filePath ? "ring-2 ring-[#ffd700]" : ""
+                      }`}
+                      onClick={() => selectIcon(icon.filePath)}
+                    >
+                      <img src={icon.url} alt={icon.name} className="h-full w-full object-contain p-1" />
+                    </button>
+                  ))}
+                </div>
+                {!activeCategory?.icons.length ? (
+                  <p className="py-8 text-center text-sm text-gray-500">Bu kategoride simge yok.</p>
+                ) : null}
 
-      <label className="secondary-button mt-3 cursor-pointer">
-        <Upload size={14} />
-        {uploading ? "Yükleniyor..." : "Özel İkon Yükle"}
-        <input
-          type="file"
-          accept="image/*,.svg"
-          className="hidden"
-          disabled={uploading}
-          onChange={(e) => handleCustomUpload(e.target.files?.[0] || null)}
-        />
-      </label>
+                <label className="secondary-button mx-auto mt-4 w-full max-w-xs cursor-pointer sm:w-auto">
+                  <Upload size={16} />
+                  {uploading ? "Yükleniyor..." : "Özel Simge Yükle"}
+                  <input
+                    type="file"
+                    accept="image/*,.svg"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => handleCustomUpload(e.target.files?.[0] || null)}
+                  />
+                </label>
+                {status ? <p className="mt-2 text-center text-xs font-semibold text-gray-600">{status}</p> : null}
+              </div>
+            </>
+          )}
+        </div>
 
-      {status ? <p className="mt-2 text-xs font-semibold text-gray-600">{status}</p> : null}
+        <div className="flex justify-end border-t border-gray-200 px-4 py-3">
+          <button type="button" className="secondary-button min-w-[100px]" onClick={onClose}>
+            Kapat
+          </button>
+        </div>
+      </div>
     </div>
+  );
+}
+
+type IconPickerProps = {
+  label: string;
+  value: string;
+  onChange: (path: string) => void;
+};
+
+export function IconPicker({ label, value, onChange }: IconPickerProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left transition hover:border-red-400 hover:bg-red-50/30"
+        onClick={() => setOpen(true)}
+      >
+        <img src={resolveSymbolAssetPath(value)} alt="" className="h-10 w-10 shrink-0 object-contain" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-xs font-bold text-gray-500">{label}</span>
+          <span className="block text-sm font-semibold text-black">Şekil seç</span>
+        </span>
+        <ChevronRight size={18} className="shrink-0 text-gray-400" />
+      </button>
+
+      <IconPickerModal open={open} value={value} onChange={onChange} onClose={() => setOpen(false)} />
+    </>
   );
 }

@@ -12,6 +12,7 @@ export const ASSET_FOLDERS = [
   "site_gorsel",
   "figures_gorsel",
   "ikon_kategori_gorsel",
+  "ikon_kategori_kapak",
   "ozel_ikon_gorsel",
   "video"
 ] as const;
