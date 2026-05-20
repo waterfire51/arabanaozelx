@@ -1,3 +1,4 @@
+import { OrderDesignPreview } from "@/components/order-design-preview";
 import { getAdminOrders } from "@/lib/data";
 import { formatPrice } from "@/lib/paths";
 import { updateOrderStatus } from "../actions";
@@ -29,6 +30,7 @@ export default async function AdminOrdersPage() {
               <th className="px-4 py-3">Sipariş</th>
               <th className="px-4 py-3">Müşteri</th>
               <th className="px-4 py-3">Adres</th>
+              <th className="px-4 py-3">Tasarım</th>
               <th className="px-4 py-3">Tutar</th>
               <th className="px-4 py-3">Durum</th>
             </tr>
@@ -44,6 +46,13 @@ export default async function AdminOrdersPage() {
                 <td className="px-4 py-3">
                   {order.city}/{order.district}
                   <span className="block max-w-[260px] truncate text-xs text-gray-500">{order.address}</span>
+                </td>
+                <td className="px-4 py-3">
+                  {order.items?.[0]?.design ? (
+                    <OrderDesignPreview designs={order.items[0].design as any[]} />
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 font-black text-red-600">{formatPrice(order.total)}</td>
                 <td className="px-4 py-3">
@@ -65,7 +74,7 @@ export default async function AdminOrdersPage() {
             ))}
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                   Henüz sipariş yok.
                 </td>
               </tr>

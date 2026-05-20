@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Box, FileText, LayoutDashboard, LogOut, ShoppingBag } from "lucide-react";
+import { Box, FileText, LayoutDashboard, LogOut, Shapes, ShoppingBag } from "lucide-react";
 import { assetPath } from "@/lib/assets";
 import { logout } from "@/app/admin/login/actions";
 
 const links = [
   { href: "/admin", label: "Özet", icon: LayoutDashboard },
   { href: "/admin/products", label: "Ürünler", icon: Box },
+  { href: "/admin/icons", label: "Şekiller / İkonlar", icon: Shapes },
   { href: "/admin/orders", label: "Siparişler", icon: ShoppingBag },
   { href: "/admin/pages", label: "Sayfalar", icon: FileText }
 ];

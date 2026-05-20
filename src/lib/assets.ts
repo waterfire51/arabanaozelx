@@ -11,6 +11,8 @@ export const ASSET_FOLDERS = [
   "wp_musteri_gorsel",
   "site_gorsel",
   "figures_gorsel",
+  "ikon_kategori_gorsel",
+  "ozel_ikon_gorsel",
   "video"
 ] as const;
 

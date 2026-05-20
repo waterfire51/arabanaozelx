@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Check, Send } from "lucide-react";
 import type { SiteProduct, SiteProductVariant } from "@/lib/types";
+import { IconPicker } from "@/components/icon-picker";
+import { resolveSymbolAssetPath } from "@/lib/icons";
 import { assetPath, formatPrice } from "@/lib/paths";
 
 type Design = {
@@ -23,14 +25,6 @@ const colors = [
 ];
 
 const fonts = ["Arial", "Verdana", "Georgia", "Impact", "Trebuchet MS"];
-
-const symbols = [
-  { label: "Siyah", value: "siyah" },
-  { label: "Kalp", value: "heart_36" },
-  { label: "Bayrak", value: "flag_1" },
-  { label: "Mercedes", value: "vehicle_mercedes" },
-  { label: "Konya", value: "city_konya2" }
-];
 
 const cities = [
   "ADANA",
@@ -55,8 +49,8 @@ function makeDesign(): Design {
     textColor: "white",
     fontFamily: "Arial",
     align: "center",
-    leftSymbol: "siyah",
-    rightSymbol: "siyah"
+    leftSymbol: "figures_gorsel/siyah.svg",
+    rightSymbol: "figures_gorsel/siyah.svg"
   };
 }
 
@@ -179,11 +173,11 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                 </div>
 
                 <div className="plate-preview">
-                  <img className="plate-symbol plate-symbol-left" src={assetPath(`figures_gorsel/${design.leftSymbol}.svg`)} alt="" />
+                  <img className="plate-symbol plate-symbol-left" src={resolveSymbolAssetPath(design.leftSymbol)} alt="" />
                   <div className="plate-text" style={{ color: design.textColor, textAlign: design.align, fontFamily: design.fontFamily }}>
                     {design.text || "PLAKALIK YAZISI"}
                   </div>
-                  <img className="plate-symbol plate-symbol-right" src={assetPath(`figures_gorsel/${design.rightSymbol}.svg`)} alt="" />
+                  <img className="plate-symbol plate-symbol-right" src={resolveSymbolAssetPath(design.rightSymbol)} alt="" />
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -219,26 +213,20 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                       <option value="right">Sağ</option>
                     </select>
                   </label>
-                  <label>
-                    <span className="form-label">Sol Şekil</span>
-                    <select className="form-input" value={design.leftSymbol} onChange={(event) => updateDesign(index, { leftSymbol: event.target.value })}>
-                      {symbols.map((symbol) => (
-                        <option key={symbol.value} value={symbol.value}>
-                          {symbol.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span className="form-label">Sağ Şekil</span>
-                    <select className="form-input" value={design.rightSymbol} onChange={(event) => updateDesign(index, { rightSymbol: event.target.value })}>
-                      {symbols.map((symbol) => (
-                        <option key={symbol.value} value={symbol.value}>
-                          {symbol.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <div className="md:col-span-2">
+                    <IconPicker
+                      label="Sol Şekil"
+                      value={design.leftSymbol}
+                      onChange={(path) => updateDesign(index, { leftSymbol: path })}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <IconPicker
+                      label="Sağ Şekil"
+                      value={design.rightSymbol}
+                      onChange={(path) => updateDesign(index, { rightSymbol: path })}
+                    />
+                  </div>
                 </div>
               </div>
             ))}

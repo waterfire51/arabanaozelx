@@ -1,6 +1,9 @@
 import { prisma } from "./prisma";
 import { fallbackCategories, fallbackPages, fallbackProducts, fallbackSlides } from "./fallback";
 import { normalizeLegacySlug } from "./paths";
+import type { IconCatalogCategory } from "./icons";
+import { assetPath } from "./assets";
+import { iconCategories as fallbackIconCategories, seedIcons } from "./seed-icon-data";
 import type { SiteCategory, SiteHeroSlide, SitePage, SiteProduct, SiteProductVariant } from "./types";
 
 function hasDatabaseUrl() {
@@ -227,6 +230,88 @@ export async function getAdminPages() {
   }
 }
 
+function fallbackIconCatalog(): IconCatalogCategory[] {
+  return fallbackIconCategories.map((category) => ({
+    id: category.slug,
+    name: category.name,
+    slug: category.slug,
+    icons: seedIcons
+      .filter((icon) => icon.categorySlug === category.slug)
+      .map((icon, index) => ({
+        id: `${category.slug}-${index}`,
+        name: icon.name,
+        filePath: icon.filePath,
+        url: assetPath(icon.filePath),
+        source: "ADMIN" as const
+      }))
+  }));
+}
+
+export async function getIconCatalog(): Promise<IconCatalogCategory[]> {
+  if (!hasDatabaseUrl()) {
+    return fallbackIconCatalog();
+  }
+
+  try {
+    const categories = await prisma.iconCategory.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" },
+      include: {
+        icons: {
+          where: { active: true, source: "ADMIN" },
+          orderBy: { sortOrder: "asc" }
+        }
+      }
+    });
+
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      icons: category.icons.map((icon) => ({
+        id: icon.id,
+        name: icon.name,
+        filePath: icon.filePath,
+        url: assetPath(icon.filePath),
+        source: icon.source as "ADMIN" | "CUSTOMER"
+      }))
+    }));
+  } catch {
+    return fallbackIconCatalog();
+  }
+}
+
+export async function getAdminIconCategories() {
+  if (!hasDatabaseUrl()) {
+    return { categories: fallbackIconCatalog(), dbReady: false };
+  }
+
+  try {
+    const categories = await prisma.iconCategory.findMany({
+      orderBy: { sortOrder: "asc" },
+      include: {
+        icons: {
+          orderBy: { sortOrder: "asc" }
+        },
+        _count: { select: { icons: true } }
+      }
+    });
+
+    return {
+      categories: categories.map((category) => ({
+        ...category,
+        icons: category.icons.map((icon) => ({
+          ...icon,
+          url: assetPath(icon.filePath)
+        }))
+      })),
+      dbReady: true
+    };
+  } catch {
+    return { categories: [], dbReady: false };
+  }
+}
+
 export async function getAdminOrders() {
   if (!hasDatabaseUrl()) {
     return { orders: [], dbReady: false };
@@ -234,6 +319,11 @@ export async function getAdminOrders() {
 
   try {
     const orders = await prisma.order.findMany({
+      include: {
+        items: {
+          include: { product: true }
+        }
+      },
       orderBy: { createdAt: "desc" }
     });
 

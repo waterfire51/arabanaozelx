@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { iconCategories, seedIcons } from "../src/lib/seed-icon-data";
 import { categories, heroSlides, pages, products } from "../src/lib/seed-data";
 
 const prisma = new PrismaClient();
@@ -71,6 +72,39 @@ async function main() {
       where: { slug: page.slug },
       update: { ...page, sortOrder: index },
       create: { ...page, sortOrder: index }
+    });
+  }
+
+  for (const [index, iconCategory] of iconCategories.entries()) {
+    await prisma.iconCategory.upsert({
+      where: { slug: iconCategory.slug },
+      update: { ...iconCategory, sortOrder: index },
+      create: { ...iconCategory, sortOrder: index }
+    });
+  }
+
+  for (const [index, icon] of seedIcons.entries()) {
+    const category = await prisma.iconCategory.findUnique({
+      where: { slug: icon.categorySlug }
+    });
+
+    await prisma.icon.upsert({
+      where: { filePath: icon.filePath },
+      update: {
+        name: icon.name,
+        categoryId: category?.id,
+        source: "ADMIN",
+        active: true,
+        sortOrder: index
+      },
+      create: {
+        name: icon.name,
+        filePath: icon.filePath,
+        categoryId: category?.id,
+        source: "ADMIN",
+        active: true,
+        sortOrder: index
+      }
     });
   }
 }
