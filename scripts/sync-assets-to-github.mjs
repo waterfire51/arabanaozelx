@@ -236,16 +236,19 @@ Yeni dosya yolu örneği: \`plakalik_gorsel/otomobil-isikli-1.webp\`
 
 async function syncFigures() {
   const figuresDir = path.join(root, "public", "inc_all", "figures");
-  const files = await readdir(figuresDir);
-
-  for (const file of files) {
-    if (!file.endsWith(".svg")) {
-      continue;
+  try {
+    const files = await readdir(figuresDir);
+    for (const file of files) {
+      if (!file.endsWith(".svg")) {
+        continue;
+      }
+      const buffer = await readFile(path.join(figuresDir, file));
+      const repoPath = `figures_gorsel/${file}`;
+      await uploadBinary(repoPath, buffer, `sync local figure: ${repoPath}`);
+      console.log(`OK ${repoPath} (local)`);
     }
-    const buffer = await readFile(path.join(figuresDir, file));
-    const repoPath = `figures_gorsel/${file}`;
-    await uploadBinary(repoPath, buffer, `sync local figure: ${repoPath}`);
-    console.log(`OK ${repoPath} (local)`);
+  } catch {
+    console.log("SKIP figures (yerel klasör yok, GitHub assets kullanılıyor)");
   }
 }
 

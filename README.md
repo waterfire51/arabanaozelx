@@ -1,26 +1,40 @@
-# Arabana Özel Next.js
+# Arabana Özel
 
-Statik HTML kopyası Next.js App Router yapısına taşındı. Vitrin eski tema assetleriyle çalışır; ürün, sayfa ve sipariş verileri Prisma üzerinden PostgreSQL'e bağlanır. Veritabanı yoksa site seed verisiyle ön izleme modunda açılır.
+Next.js App Router e-ticaret sitesi. Ürün görselleri GitHub `arabanaozelx_assets` reposundan servis edilir.
 
 ## Kurulum
 
 ```bash
 npm install
-copy .env.example .env
+copy .env.example .env.local
 npm run prisma:generate
 npm run prisma:migrate
 npm run prisma:seed
 npm run dev
 ```
 
-`.env` içinde `DATABASE_URL` PostgreSQL bağlantısını ve `ADMIN_PASSWORD` yönetim paneli şifresini belirler.
+`.env.local` içinde PostgreSQL (`DATABASE_URL`), admin şifresi ve GitHub assets ayarları tanımlı olmalı.
+
+## Görsel senkronu
+
+```bash
+npm run assets:sync
+```
+
+Otodark kaynaklı görselleri `arabanaozelx_assets` reposuna yükler.
 
 ## Ekranlar
 
-- `/` ana vitrin
-- `/plakalik/otomobil` örnek dinamik ürün/tasarım/sipariş ekranı
-- `/kargo-takip` sipariş sorgulama
-- `/admin` yönetim paneli
-- `/admin/products`, `/admin/orders`, `/admin/pages` CRUD ekranları
+- `/` — ana vitrin
+- `/plakalik/otomobil` — ürün / tasarım / sipariş
+- `/kargo-takip`, `/galeri`, `/iletisim` — CMS sayfaları
+- `/admin` — yönetim paneli (ürün görseli GitHub'a yüklenebilir)
 
-Varsayılan geliştirme admin şifresi `admin123`.
+## Proje yapısı
+
+- `src/` — Next.js uygulaması
+- `public/assets/css`, `public/inc_all/css` — vitrin teması stilleri
+- `prisma/` — veritabanı şeması
+- `scripts/` — asset senkron scripti
+
+Eski statik HTML mirror dosyaları projeden kaldırıldı.
