@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  iconPath  String?
+  sortOrder Int       @default(0)
+  active    Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  name             String
+  shortDescription String?
+  description      String?
+  imagePath        String
+  price            Decimal          @db.Decimal(10, 2)
+  compareAtPrice   Decimal?         @db.Decimal(10, 2)
+  badge            String?
+  active           Boolean          @default(true)
+  featured         Boolean          @default(true)
+  customizable     Boolean          @default(true)
+  sortOrder        Int              @default(0)
+  categoryId       String?
+  category         Category?        @relation(fields: [categoryId], references: [id])
+  variants         ProductVariant[]
+  orderItems       OrderItem[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label         String
+  quantity      Int      @default(1)
+  unitPrice     Decimal  @db.Decimal(10, 2)
+  shipmentPrice Decimal  @db.Decimal(10, 2) @default(0)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HeroSlide {
+  id        String   @id @default(cuid())
+  title     String?
+  subtitle  String?
+  imagePath String
+  href      String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  title     String
+  body      String     @db.Text
+  status    PageStatus @default(PUBLISHED)
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  orderNo           String      @unique
+  customerFirstName String
+  customerLastName  String
+  phone             String
+  city              String
+  district          String
+  address           String      @db.Text
+  status            OrderStatus @default(NEW)
+  subtotal          Decimal     @db.Decimal(10, 2)
+  shipmentTotal     Decimal     @db.Decimal(10, 2) @default(0)
+  total             Decimal     @db.Decimal(10, 2)
+  note              String?     @db.Text
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product @relation(fields: [productId], references: [id])
+  variantLabel String
+  quantity     Int
+  unitPrice    Decimal @db.Decimal(10, 2)
+  total        Decimal @db.Decimal(10, 2)
+  design       Json
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PRODUCTION
+  SHIPPED
+  CANCELLED
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+}
