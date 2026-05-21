@@ -1,10 +1,12 @@
 import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import { getAdminOrders } from "@/lib/data";
+import { fetchIconNameLookup } from "@/lib/icon-display-name";
 import { getSiteBaseUrl } from "@/lib/site-url";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
-  const { orders, dbReady } = await getAdminOrders();
+  const [{ orders, dbReady }, iconNameByPath] = await Promise.all([getAdminOrders(), fetchIconNameLookup()]);
   const siteBaseUrl = getSiteBaseUrl();
 
   const serializedOrders = orders.map((order) => ({
@@ -44,7 +46,7 @@ export default async function AdminOrdersPage() {
       ) : null}
 
       {dbReady ? (
-        <AdminOrdersPanel orders={serializedOrders} siteBaseUrl={siteBaseUrl} />
+        <AdminOrdersPanel orders={serializedOrders} siteBaseUrl={siteBaseUrl} iconNameByPath={iconNameByPath} />
       ) : (
         <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Veritabanı bağlantısı bekleniyor.</div>
       )}

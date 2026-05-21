@@ -594,11 +594,7 @@ main header:not(.site-header) {
     height: 138px;
   }
 
-  .plate-frame-img {
-    max-height: 42px;
-    object-fit: cover;
-    object-position: center top;
-  }
+
 
   .plate-preview {
     min-height: 15px;

@@ -7,6 +7,7 @@ import { OrderStatusSelect } from "@/components/order-status-select";
 import { OrderDesignImageDownload } from "@/components/order-design-image-download";
 import { OrderDesignPreview } from "@/components/order-design-preview";
 import { formatPrice } from "@/lib/paths";
+import type { IconNameLookup } from "@/lib/icon-display-name";
 import { getOrderStatusLabel, ORDER_STATUS_OPTIONS } from "@/lib/order-status";
 
 export type AdminOrderRow = {
@@ -70,9 +71,10 @@ function formatOrderDate(value: string | Date) {
 type AdminOrdersPanelProps = {
   orders: AdminOrderRow[];
   siteBaseUrl: string;
+  iconNameByPath?: IconNameLookup;
 };
 
-export function AdminOrdersPanel({ orders, siteBaseUrl }: AdminOrdersPanelProps) {
+export function AdminOrdersPanel({ orders, siteBaseUrl, iconNameByPath = {} }: AdminOrdersPanelProps) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [statusByOrderId, setStatusByOrderId] = useState<Record<string, string>>(() =>
@@ -248,7 +250,7 @@ export function AdminOrdersPanel({ orders, siteBaseUrl }: AdminOrdersPanelProps)
                         designs={designs}
                       />
                     </div>
-                    <OrderDesignPreview designs={designs} />
+                    <OrderDesignPreview designs={designs} iconNameByPath={iconNameByPath} />
                   </div>
                 ) : null}
               </article>
