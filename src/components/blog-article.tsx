@@ -3,6 +3,7 @@ import { Calendar, ChevronLeft, User } from "lucide-react";
 import type { SiteBlogPost } from "@/lib/types";
 import { assetPath } from "@/lib/paths";
 import { formatBlogDate } from "@/lib/blog";
+import { isBlogHtml, sanitizeBlogHtml } from "@/lib/blog-html";
 import { getSiteBaseUrl } from "@/lib/site-url";
 
 export function BlogArticle({ post }: { post: SiteBlogPost }) {
@@ -55,7 +56,14 @@ export function BlogArticle({ post }: { post: SiteBlogPost }) {
           </div>
           <h1 className="text-3xl font-black leading-tight text-black sm:text-4xl">{post.title}</h1>
           {post.excerpt ? <p className="mt-4 text-lg leading-relaxed text-gray-600">{post.excerpt}</p> : null}
-          <div className="prose-blog mt-8 whitespace-pre-line text-base leading-8 text-gray-700">{post.body}</div>
+          {isBlogHtml(post.body) ? (
+            <div
+              className="prose-blog mt-8 text-base leading-8 text-gray-700"
+              dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.body) }}
+            />
+          ) : (
+            <div className="prose-blog mt-8 whitespace-pre-line text-base leading-8 text-gray-700">{post.body}</div>
+          )}
         </div>
       </div>
     </article>

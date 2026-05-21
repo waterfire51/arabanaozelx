@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
+import { AdminBlogEditor } from "@/components/admin-blog-editor";
 import { AdminImageUpload } from "@/components/admin-image-upload";
 import { assetPath } from "@/lib/assets";
 import { blogPostHref, formatBlogDate } from "@/lib/blog";
@@ -155,16 +156,7 @@ function BlogPostForm({ post }: { post?: BlogPostRow }) {
         />
       </div>
 
-      <label>
-        <span className="form-label">İçerik</span>
-        <textarea
-          name="body"
-          className="form-input min-h-[280px]"
-          defaultValue={post?.body || ""}
-          required
-          placeholder="Yazı metni..."
-        />
-      </label>
+      <AdminBlogEditor defaultValue={post?.body || ""} />
 
       <div className="rounded-xl border border-[#ee3625]/15 bg-[#fff8f7] p-4 sm:p-5">
         <h3 className="text-sm font-black uppercase tracking-wide text-[#c82014]">SEO Ayarları</h3>

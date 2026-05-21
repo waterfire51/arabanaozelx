@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { migrateLegacyAssetPath, normalizeStoredAssetPath } from "@/lib/assets";
 import { slugifyBlogTitle } from "@/lib/blog";
+import { isBlogHtml, sanitizeBlogHtml } from "@/lib/blog-html";
 import { normalizeLegacySlug } from "@/lib/paths";
 import { requireAdmin } from "@/lib/auth";
 
@@ -341,11 +342,14 @@ export async function saveBlogPost(formData: FormData) {
     migrateLegacyAssetPath(String(formData.get("ogImagePath") || ""))
   );
 
+  const rawBody = String(formData.get("body") || "").trim();
+  const body = isBlogHtml(rawBody) ? sanitizeBlogHtml(rawBody) : rawBody;
+
   const payload = {
     slug,
     title,
     excerpt: String(formData.get("excerpt") || "") || null,
-    body: String(formData.get("body") || ""),
+    body,
     coverImagePath: coverImagePath || null,
     ogImagePath: ogImagePath || null,
     status,

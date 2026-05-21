@@ -594,34 +594,63 @@ main header:not(.site-header) {
     height: 138px;
   }
 
+  .plate-frame-img {
+    max-height: 42px;
+    object-fit: cover;
+    object-position: center top;
+  }
+
   .plate-preview {
-    min-height: 112px;
+    min-height: 15px;
+    padding: 4px 0;
+  }
+
+  .plate-preview::before,
+  .plate-preview::after {
+    top: 4px;
+    bottom: 4px;
+    width: 24px;
+  }
+
+  .plate-preview::before {
+    left: 6px;
+  }
+
+  .plate-preview::after {
+    right: 6px;
+  }
+
+  .plate-text {
+    width: 68%;
+    font-size: clamp(8px, 2.6vw, 11px);
+    line-height: 1;
   }
 
   .plate-symbol {
-    height: 44px;
-    max-width: 56px;
+    height: 18px;
+    max-width: 28px;
   }
 
   .plate-symbol img {
-    height: 44px;
-    max-width: 56px;
+    height: 18px;
+    max-width: 28px;
   }
 
   .plate-symbol-wide {
-    max-width: min(44%, 108px);
+    max-width: min(36%, 72px);
   }
 
   .plate-symbol-wide img {
-    max-width: min(44vw, 108px);
+    height: 18px;
+    max-width: min(36vw, 72px);
   }
 
   .plate-symbol-left {
-    left: 14px;
+    left: 8px;
   }
 
   .plate-symbol-right {
-    right: 14px;
+    right: 8px;
   }
 }
 
@@ -772,8 +801,91 @@ main header:not(.site-header) {
   color: #6b7280;
 }
 
+.prose-blog {
+  max-width: none;
+}
+
+.prose-blog h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #111;
+}
+
+.prose-blog h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.prose-blog h4 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.prose-blog p {
+  margin-bottom: 1rem;
+}
+
+.prose-blog ul,
+.prose-blog ol {
+  margin: 0 0 1rem 1.25rem;
+  padding: 0;
+}
+
+.prose-blog li {
+  margin-bottom: 0.35rem;
+}
+
+.prose-blog blockquote {
+  margin: 1.25rem 0;
+  border-left: 4px solid #ee3625;
+  padding: 0.5rem 0 0.5rem 1rem;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f9fafb;
+}
+
+.prose-blog hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
 .prose-blog a {
   color: #ee3625;
   font-weight: 600;
   text-decoration: underline;
+}
+
+.admin-blog-tool {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 6px;
+  border: 1px solid #e2e5eb;
+  background: #fff;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.admin-blog-tool:hover {
+  border-color: #ee3625;
+  color: #c82014;
+}
+
+.admin-blog-visual:empty::before {
+  content: "Görsel düzenleme — metin yazın veya HTML sekmesinden yapıştırın";
+  color: #9ca3af;
 }
