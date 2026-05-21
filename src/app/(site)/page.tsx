@@ -1,4 +1,5 @@
 import { CategoryStrip } from "@/components/category-strip";
+import { DbFallbackBanner } from "@/components/db-fallback-banner";
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductGrid } from "@/components/product-grid";
 import { getHomeData } from "@/lib/data";
@@ -7,15 +8,11 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const { slides, homeVideo, categories, products, usingFallback } = await getHomeData();
+  const { slides, homeVideo, categories, products, usingFallback, fallbackReason } = await getHomeData();
 
   return (
     <>
-      {usingFallback ? (
-        <div className="site-container mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-800">
-          PostgreSQL bağlantısı bulunamadı; sayfa seed verisiyle ön izleme modunda çalışıyor.
-        </div>
-      ) : null}
+      {usingFallback && fallbackReason ? <DbFallbackBanner reason={fallbackReason} /> : null}
       <HeroSlider slides={slides} />
       <CategoryStrip categories={categories} homeVideo={homeVideo} />
       <ProductGrid products={products} />

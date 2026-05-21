@@ -7,6 +7,7 @@ import { migrateLegacyAssetPath, normalizeStoredAssetPath } from "@/lib/assets";
 import { slugifyBlogTitle } from "@/lib/blog";
 import { isBlogHtml, sanitizeBlogHtml } from "@/lib/blog-html";
 import { normalizeLegacySlug } from "@/lib/paths";
+import { revalidateSitemap } from "@/lib/sitemap";
 import { requireAdmin } from "@/lib/auth";
 
 function boolValue(value: FormDataEntryValue | null) {
@@ -90,6 +91,7 @@ export async function saveProduct(formData: FormData) {
   revalidatePath("/");
   revalidatePath(`/${slug}`);
   revalidatePath("/admin/products");
+  revalidateSitemap();
   redirect("/admin/products");
 }
 
@@ -103,6 +105,7 @@ export async function deleteProduct(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/admin/products");
+  revalidateSitemap();
 }
 
 export async function savePage(formData: FormData) {
@@ -139,6 +142,7 @@ export async function savePage(formData: FormData) {
   if (slug === "galeri") {
     revalidatePath("/galeri");
   }
+  revalidateSitemap();
   redirect(returnTo.startsWith("/admin") ? returnTo : "/admin/pages");
 }
 
@@ -183,6 +187,7 @@ export async function saveSiteSettings(formData: FormData) {
 
   revalidatePath("/", "layout");
   revalidatePath("/admin/settings");
+  revalidateSitemap();
   redirect("/admin/settings");
 }
 
@@ -247,6 +252,7 @@ export async function saveHeroSlide(formData: FormData) {
   revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/admin/slides");
+  revalidateSitemap();
   redirect("/admin/slides");
 }
 
@@ -261,6 +267,7 @@ export async function deleteHeroSlide(formData: FormData) {
   revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/admin/slides");
+  revalidateSitemap();
   redirect("/admin/slides");
 }
 
@@ -291,6 +298,7 @@ export async function saveGalleryImage(formData: FormData) {
 
   revalidatePath("/galeri");
   revalidatePath("/admin/gallery");
+  revalidateSitemap();
   redirect("/admin/gallery");
 }
 
@@ -304,6 +312,7 @@ export async function deleteGalleryImage(formData: FormData) {
 
   revalidatePath("/galeri");
   revalidatePath("/admin/gallery");
+  revalidateSitemap();
   redirect("/admin/gallery");
 }
 
@@ -373,6 +382,7 @@ export async function saveBlogPost(formData: FormData) {
   revalidatePath("/blog");
   revalidatePath(`/blog/${slug}`);
   revalidatePath("/admin/blog");
+  revalidateSitemap();
   redirect("/admin/blog");
 }
 
@@ -390,6 +400,7 @@ export async function deleteBlogPost(formData: FormData) {
 
   revalidatePath("/blog");
   revalidatePath("/admin/blog");
+  revalidateSitemap();
   redirect("/admin/blog");
 }
 

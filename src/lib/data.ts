@@ -8,6 +8,7 @@ import { iconCategories as fallbackIconCategories, seedIcons } from "./seed-icon
 import { fallbackBlogPosts } from "./fallback-blog";
 import { fallbackGalleryImages, serializeGalleryImage } from "./gallery";
 import { defaultSiteSettings } from "./site-settings";
+import { hasDatabaseUrl, type DbFallbackReason } from "./database";
 import type {
   SiteBlogPost,
   SiteCategory,
@@ -19,10 +20,6 @@ import type {
   SiteProductVariant,
   SiteSettings
 } from "./types";
-
-function hasDatabaseUrl() {
-  return Boolean(process.env.DATABASE_URL);
-}
 
 function toNumber(value: unknown) {
   if (value == null) {
@@ -97,7 +94,8 @@ export async function getHomeData() {
       homeVideo: fallbackHomeVideo,
       categories: fallbackCategories,
       products: fallbackProducts,
-      usingFallback: true
+      usingFallback: true,
+      fallbackReason: "missing_url" as DbFallbackReason
     };
   }
 
@@ -127,16 +125,18 @@ export async function getHomeData() {
       homeVideo,
       categories: categories as SiteCategory[],
       products: products.map(serializeProduct),
-      usingFallback: false
+      usingFallback: false,
+      fallbackReason: undefined
     };
   } catch (error) {
     console.error("[getHomeData] Veritabanı okunamadı:", error);
     return {
-      slides: [],
+      slides: fallbackSlides,
       homeVideo: fallbackHomeVideo,
-      categories: [],
-      products: [],
-      usingFallback: true
+      categories: fallbackCategories,
+      products: fallbackProducts,
+      usingFallback: true,
+      fallbackReason: "connection_error" as DbFallbackReason
     };
   }
 }

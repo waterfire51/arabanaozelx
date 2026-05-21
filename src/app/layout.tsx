@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { SiteSettingsProvider } from "@/components/site-settings-context";
 import { getSiteSettings } from "@/lib/data";
 import { resolveSiteBranding, resolveSiteSeo } from "@/lib/site-settings";
 import { buildPageMetadata } from "@/lib/seo";
 import "./globals.css";
+
+const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +28,13 @@ export async function generateMetadata(): Promise<Metadata> {
     metadata.icons = {
       icon: branding.faviconUrl,
       shortcut: branding.faviconUrl
+    };
+  }
+
+  if (GOOGLE_SITE_VERIFICATION) {
+    metadata.verification = {
+      ...metadata.verification,
+      google: GOOGLE_SITE_VERIFICATION
     };
   }
 
@@ -50,6 +60,7 @@ export default async function RootLayout({
         <link rel="stylesheet" href="/inc_all/css/style.css" />
       </head>
       <body>
+        <GoogleAnalytics />
         <SiteSettingsProvider branding={branding}>{children}</SiteSettingsProvider>
       </body>
     </html>
