@@ -1,22 +1,7 @@
 import Link from "next/link";
 import type { SitePage } from "@/lib/types";
-import { assetPath } from "@/lib/assets";
-import { TrackOrder } from "./track-order";
-
-function Gallery() {
-  return (
-    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-      {Array.from({ length: 28 }, (_, index) => {
-        const name = String(index + 1).padStart(3, "0");
-        return (
-          <a key={name} href={assetPath(`wp_musteri_gorsel/${name}.jpg`)} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg bg-gray-100">
-            <img src={assetPath(`wp_musteri_gorsel/${name}.jpg`)} alt={`Müşteri görseli ${name}`} className="h-44 w-full object-cover transition hover:scale-105" />
-          </a>
-        );
-      })}
-    </div>
-  );
-}
+import { GallerySection } from "./gallery-section";
+import { TrackOrderSection } from "./track-order-section";
 
 function Agreements() {
   const links = [
@@ -40,14 +25,12 @@ function Agreements() {
 export function PageContent({ page }: { page: SitePage }) {
   return (
     <main className="site-container py-8">
-      <article className="otodark-card p-6">
+      <article className="site-card p-6">
         <h1 className="text-2xl font-black text-black">{page.title}</h1>
         <div className="mt-5 whitespace-pre-line text-base leading-8 text-gray-700">{page.body}</div>
-        {page.slug === "galeri" ? <Gallery /> : null}
+        {page.slug === "galeri" ? <GallerySection /> : null}
         {page.slug === "sozlesmeler" ? <Agreements /> : null}
-        {page.slug === "kargo-takip" ? (
-          <TrackOrder />
-        ) : null}
+        {page.slug === "kargo-takip" ? <TrackOrderSection /> : null}
       </article>
     </main>
   );

@@ -108,6 +108,7 @@ function ProductForm({
           <AdminImageUpload
             slug={product?.slug || ""}
             defaultPath={product?.imagePath || "urun_gorsel/1.webp"}
+            showPathInput
           />
         </div>
         <label>

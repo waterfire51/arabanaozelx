@@ -1,30 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Check, Send } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, CreditCard, Send } from "lucide-react";
 import type { SiteProduct, SiteProductVariant } from "@/lib/types";
-import { IconPicker, IconPickerModal } from "@/components/icon-picker";
-import { resolveSymbolAssetPath } from "@/lib/icons";
+import { PlateDesignEditor, type PlateDesign } from "@/components/plate-design-editor";
+import { buildOrderTrackUrl } from "@/lib/order-track-url";
 import { assetPath, formatPrice } from "@/lib/paths";
+import Link from "next/link";
+import { DesignApprovalCheckbox, ProductDetailNotices } from "@/components/product-detail-notices";
+import { isPlakalikProduct } from "@/lib/product-notices";
+import { PLATE_FONT_OPTIONS } from "@/lib/plate-design";
+import { PaymentMethodPicker, type CheckoutPaymentMethod } from "@/components/payment-method-picker";
+import { PaytrCheckoutModal } from "@/components/paytr-checkout-modal";
 
-type Design = {
-  text: string;
-  textColor: string;
-  fontFamily: string;
-  align: "left" | "center" | "right";
-  leftSymbol: string;
-  rightSymbol: string;
-};
-
-const colors = [
-  { label: "Beyaz", value: "white" },
-  { label: "Sarı", value: "yellow" },
-  { label: "Kırmızı", value: "red" },
-  { label: "Yeşil", value: "#28d36b" },
-  { label: "Mavi", value: "#43a8ff" }
-];
-
-const fonts = ["Arial", "Verdana", "Georgia", "Impact", "Trebuchet MS"];
+type Design = PlateDesign;
 
 const cities = [
   "ADANA",
@@ -45,9 +34,9 @@ const cities = [
 
 function makeDesign(): Design {
   return {
-    text: "PLAKALIK YAZISI GİR",
+    text: "",
     textColor: "white",
-    fontFamily: "Arial",
+    fontFamily: PLATE_FONT_OPTIONS[0].family,
     align: "center",
     leftSymbol: "figures_gorsel/siyah.svg",
     rightSymbol: "figures_gorsel/siyah.svg"
@@ -77,7 +66,6 @@ function VariantButton({
     >
       <span className="block text-sm font-black text-green-600">{variant.label}</span>
       <span className="mt-1 block text-lg font-black text-black">{formatPrice(variant.unitPrice)}</span>
-      <span className="block text-xs font-semibold text-green-700">Kapıda Ödeme</span>
     </button>
   );
 }
@@ -91,17 +79,40 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
+    email: "",
     phone: "",
     address: "",
     city: "KONYA",
     district: "",
     note: ""
   });
+  const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod>("paytr");
+  const [paytrAvailable, setPaytrAvailable] = useState(false);
+  const [paytrToken, setPaytrToken] = useState<string | null>(null);
+  const [paytrOrderNo, setPaytrOrderNo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string; orderNo?: string } | null>(null);
   const [symbolPicker, setSymbolPicker] = useState<{ index: number; side: "left" | "right" } | null>(null);
+  const [designApproved, setDesignApproved] = useState(false);
+  const showPlakalikNotices = isPlakalikProduct(product.slug);
 
   const total = useMemo(() => variant.unitPrice + variant.shipmentPrice, [variant]);
+
+  useEffect(() => {
+    fetch("/api/paytr/status")
+      .then((response) => response.json())
+      .then((data: { configured?: boolean }) => {
+        const configured = Boolean(data.configured);
+        setPaytrAvailable(configured);
+        if (!configured) {
+          setPaymentMethod("cod");
+        }
+      })
+      .catch(() => {
+        setPaytrAvailable(false);
+        setPaymentMethod("cod");
+      });
+  }, []);
 
   function updateDesign(index: number, patch: Partial<Design>) {
     setDesigns((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
@@ -109,8 +120,20 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
 
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (showPlakalikNotices && !designApproved) {
+      setResult({ ok: false, message: "Sipariş için ürün bilgilerini ve tasarım onayını işaretlemeniz gerekir." });
+      return;
+    }
+
+    if (paymentMethod === "paytr" && !customer.email.trim()) {
+      setResult({ ok: false, message: "Online ödeme için e-posta adresinizi girin." });
+      return;
+    }
+
     setLoading(true);
     setResult(null);
+    setPaytrToken(null);
 
     const response = await fetch("/api/orders", {
       method: "POST",
@@ -120,6 +143,7 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
         productSlug: product.slug,
         variant,
         designs,
+        paymentMethod,
         customer
       })
     });
@@ -132,13 +156,19 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
       return;
     }
 
-    setResult({ ok: true, message: "Siparişiniz alındı.", orderNo: data.orderNo });
+    if (data.paytrToken && data.orderNo) {
+      setPaytrOrderNo(data.orderNo);
+      setPaytrToken(data.paytrToken);
+      return;
+    }
+
+    setResult({ ok: true, message: "Siparişiniz alındı. Kapıda ödeme ile teslimatta ödeyeceksiniz.", orderNo: data.orderNo });
   }
 
   return (
     <div className="site-container py-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <section className="otodark-card p-4">
+        <section className="site-card p-4">
           <div className="mb-5 grid gap-4 md:grid-cols-[220px_1fr]">
             <div className="grid place-items-center rounded-lg bg-[#f8f9f9] p-4">
               <img src={assetPath(product.imagePath, product.slug)} alt={product.name} className="max-h-[220px] object-contain" />
@@ -167,101 +197,27 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
 
           <div className="mt-6 space-y-6">
             {designs.map((design, index) => (
-              <div key={index} className="rounded-lg border border-gray-200 bg-white p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="text-sm font-black text-black">{index + 1}. Takım Tasarım</h2>
-                  <span className="text-xs font-semibold text-gray-500">Canlı ön izleme</span>
-                </div>
-
-                <div className="plate-preview">
-                  <button
-                    type="button"
-                    className="plate-symbol plate-symbol-left cursor-pointer border-0 bg-transparent p-0 transition hover:scale-110 hover:opacity-90"
-                    title="Sol şekil seç"
-                    onClick={() => setSymbolPicker({ index, side: "left" })}
-                  >
-                    <img className="h-full w-full object-contain" src={resolveSymbolAssetPath(design.leftSymbol)} alt="" />
-                  </button>
-                  <div className="plate-text" style={{ color: design.textColor, textAlign: design.align, fontFamily: design.fontFamily }}>
-                    {design.text || "PLAKALIK YAZISI"}
-                  </div>
-                  <button
-                    type="button"
-                    className="plate-symbol plate-symbol-right cursor-pointer border-0 bg-transparent p-0 transition hover:scale-110 hover:opacity-90"
-                    title="Sağ şekil seç"
-                    onClick={() => setSymbolPicker({ index, side: "right" })}
-                  >
-                    <img className="h-full w-full object-contain" src={resolveSymbolAssetPath(design.rightSymbol)} alt="" />
-                  </button>
-                </div>
-                <p className="mt-2 text-center text-xs text-gray-500">Sol veya sağ şekle tıklayarak ikon seçin</p>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <label>
-                    <span className="form-label">Yazı</span>
-                    <input className="form-input" value={design.text} onChange={(event) => updateDesign(index, { text: event.target.value })} />
-                  </label>
-                  <label>
-                    <span className="form-label">Yazı Tipi</span>
-                    <select className="form-input" value={design.fontFamily} onChange={(event) => updateDesign(index, { fontFamily: event.target.value })}>
-                      {fonts.map((font) => (
-                        <option key={font} value={font}>
-                          {font}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span className="form-label">Yazı Rengi</span>
-                    <select className="form-input" value={design.textColor} onChange={(event) => updateDesign(index, { textColor: event.target.value })}>
-                      {colors.map((color) => (
-                        <option key={color.value} value={color.value}>
-                          {color.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span className="form-label">Yazı Konumu</span>
-                    <select className="form-input" value={design.align} onChange={(event) => updateDesign(index, { align: event.target.value as Design["align"] })}>
-                      <option value="left">Sol</option>
-                      <option value="center">Orta</option>
-                      <option value="right">Sağ</option>
-                    </select>
-                  </label>
-                  <div className="grid grid-cols-2 gap-3 md:col-span-2">
-                    <IconPicker
-                      label="Sol Şekil"
-                      value={design.leftSymbol}
-                      onChange={(path) => updateDesign(index, { leftSymbol: path })}
-                    />
-                    <IconPicker
-                      label="Sağ Şekil"
-                      value={design.rightSymbol}
-                      onChange={(path) => updateDesign(index, { rightSymbol: path })}
-                    />
-                  </div>
-                </div>
-
-                {symbolPicker?.index === index ? (
-                  <IconPickerModal
-                    open
-                    title={symbolPicker.side === "left" ? "Sol Şekil Seç" : "Sağ Şekil Seç"}
-                    value={symbolPicker.side === "left" ? design.leftSymbol : design.rightSymbol}
-                    onChange={(path) =>
-                      updateDesign(index, symbolPicker.side === "left" ? { leftSymbol: path } : { rightSymbol: path })
-                    }
-                    onClose={() => setSymbolPicker(null)}
-                  />
-                ) : null}
-              </div>
+              <PlateDesignEditor
+                key={index}
+                index={index}
+                design={design}
+                productSlug={product.slug}
+                onChange={(patch) => updateDesign(index, patch)}
+                symbolPicker={symbolPicker}
+                onOpenSymbolPicker={(side) => setSymbolPicker({ index, side })}
+                onCloseSymbolPicker={() => setSymbolPicker(null)}
+              />
             ))}
           </div>
         </section>
 
-        <form onSubmit={submitOrder} className="otodark-card h-max p-4">
+        <form onSubmit={submitOrder} className="site-card h-max p-4">
           <h2 className="text-lg font-black text-black">Kargo ve Ödeme Bilgileri</h2>
-          <div className="mt-4 rounded-lg bg-blue-600 p-4 text-center font-black text-white">KAPIDA ÖDEME</div>
+
+          <div className="mt-4">
+            <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} paytrAvailable={paytrAvailable} />
+          </div>
+
           <div className="mt-4 space-y-2 rounded-lg bg-gray-50 p-4 text-sm">
             <div className="flex justify-between">
               <span>Ürün Fiyatı</span>
@@ -300,6 +256,20 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
                 onChange={(event) => setCustomer({ ...customer, phone: event.target.value })}
               />
             </label>
+            {paymentMethod === "paytr" ? (
+              <label>
+                <span className="form-label">E-posta (ödeme için)</span>
+                <input
+                  className="form-input"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={customer.email}
+                  placeholder="ornek@email.com"
+                  onChange={(event) => setCustomer({ ...customer, email: event.target.value })}
+                />
+              </label>
+            ) : null}
             <label>
               <span className="form-label">Açık Adres</span>
               <textarea
@@ -336,15 +306,55 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
               {result.ok ? <Check className="mr-2 inline" size={16} /> : null}
               {result.message}
               {result.orderNo ? <span className="block">Sipariş No: {result.orderNo}</span> : null}
+              {result.ok && result.orderNo ? (
+                <Link
+                  href={buildOrderTrackUrl(result.orderNo, customer.phone)}
+                  className="mt-2 inline-block font-bold text-green-800 underline"
+                >
+                  Sipariş durumunu görüntüle (SMS linki)
+                </Link>
+              ) : null}
             </div>
           ) : null}
 
-          <button type="submit" disabled={loading} className="primary-button mt-4 w-full disabled:opacity-60">
-            <Send size={18} />
-            {loading ? "Kaydediliyor" : "Sipariş Ver"}
+          {showPlakalikNotices ? (
+            <div className="mt-4">
+              <DesignApprovalCheckbox approved={designApproved} onApprovedChange={setDesignApproved} compact />
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={loading || (showPlakalikNotices && !designApproved) || (paymentMethod === "paytr" && !paytrAvailable)}
+            className="primary-button mt-3 w-full disabled:opacity-60"
+          >
+            {paymentMethod === "paytr" ? <CreditCard size={18} /> : <Send size={18} />}
+            {loading
+              ? "İşleniyor..."
+              : showPlakalikNotices && !designApproved
+                ? "Tasarımı Onaylayın"
+                : paymentMethod === "paytr"
+                  ? "Ödemeye Geç"
+                  : "Sipariş Ver (Kapıda Ödeme)"}
           </button>
         </form>
       </div>
+
+      <PaytrCheckoutModal
+        open={Boolean(paytrToken)}
+        token={paytrToken ?? ""}
+        orderNo={paytrOrderNo ?? ""}
+        onClose={() => {
+          setPaytrToken(null);
+          setResult({
+            ok: true,
+            message: "Ödeme penceresi kapatıldı. Ödeme tamamlandıysa siparişiniz onaylanmıştır.",
+            orderNo: paytrOrderNo ?? undefined
+          });
+        }}
+      />
+
+      <ProductDetailNotices productSlug={product.slug} />
     </div>
   );
 }

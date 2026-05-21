@@ -21,7 +21,7 @@ npm run dev
 npm run assets:sync
 ```
 
-Otodark kaynaklı görselleri `arabanaozelx_assets` reposuna yükler.
+Görselleri `arabanaozelx_assets` reposuna yükler.
 
 ## Ekranlar
 

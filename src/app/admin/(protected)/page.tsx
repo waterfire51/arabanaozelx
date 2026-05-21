@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Box, Database, FileText, ShoppingBag } from "lucide-react";
+import { Box, Database, FileText, ImageIcon, Images, Newspaper, Settings, ShoppingBag } from "lucide-react";
 import { getAdminSummary } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,11 @@ export default async function AdminDashboardPage() {
   const cards = [
     { label: "Ürün", value: summary.products, icon: Box, href: "/admin/products" },
     { label: "Sipariş", value: summary.orders, icon: ShoppingBag, href: "/admin/orders" },
-    { label: "Sayfa", value: summary.pages, icon: FileText, href: "/admin/pages" }
+    { label: "Sayfa", value: summary.pages, icon: FileText, href: "/admin/pages" },
+    { label: "Anasayfa", value: summary.slides, icon: Images, href: "/admin/slides" },
+    { label: "Blog", value: summary.blogPosts, icon: Newspaper, href: "/admin/blog" },
+    { label: "Galeri", value: summary.galleryImages, icon: ImageIcon, href: "/admin/gallery" },
+    { label: "Site Ayarları", value: "—", icon: Settings, href: "/admin/settings" }
   ];
 
   return (
@@ -30,7 +34,7 @@ export default async function AdminDashboardPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {cards.map((card) => {
           const Icon = card.icon;
           return (

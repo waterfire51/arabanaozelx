@@ -112,17 +112,42 @@ export function buildProductAssetPath(slug: string, filename: string) {
   return `${folder}/${safeName}`;
 }
 
-export function assetPath(path: string | null | undefined, slug?: string) {
-  const fallback = `${assetsBaseUrl()}/site_gorsel/ddark.png`;
+/** Plakalık tasarım önizlemesi — public/assets/image (site kökünden servis) */
+export const PLATE_FRAME_IMAGE = "/assets/image/plakalik.png";
+export const PLATE_FRAME_MOTOR_IMAGE = "/assets/image/plakalik-motor.png";
+
+type AssetPathOptions = {
+  /** Ürün görselleri için varsayılan; marka görsellerinde `null` verin */
+  fallback?: string | null;
+};
+
+export function assetPath(path: string | null | undefined, slug?: string, options?: AssetPathOptions) {
+  const fallback =
+    options && "fallback" in options
+      ? options.fallback ?? ""
+      : `${assetsBaseUrl()}/site_gorsel/logo.png`;
 
   if (!path) {
-    return fallback;
+    return fallback ?? "";
   }
 
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
 
-  const resolved = migrateLegacyAssetPath(path, slug);
+  const clean = normalizeStoredAssetPath(path);
+
+  if (clean.startsWith("assets/image/") || clean.startsWith("uploads/")) {
+    return `/${clean}`;
+  }
+
+  const resolved = migrateLegacyAssetPath(clean, slug);
   return `${assetsBaseUrl()}/${normalizeStoredAssetPath(resolved)}`;
+}
+
+export function plateFrameImagePath(productSlug?: string) {
+  if (productSlug?.includes("motor")) {
+    return PLATE_FRAME_MOTOR_IMAGE;
+  }
+  return PLATE_FRAME_IMAGE;
 }

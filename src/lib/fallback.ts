@@ -1,5 +1,11 @@
 import { categories, heroSlides, pages, products } from "./seed-data";
-import type { SiteCategory, SiteHeroSlide, SitePage, SiteProduct } from "./types";
+import type { SiteCategory, SiteHeroSlide, SiteHomeVideo, SitePage, SiteProduct } from "./types";
+
+export const fallbackHomeVideo: SiteHomeVideo = {
+  videoPath: "video/toptan-plakalik-ads-2.mp4",
+  href: "/",
+  active: true
+};
 
 export const fallbackCategories: SiteCategory[] = categories.map((category, index) => ({
   ...category,

@@ -66,34 +66,99 @@ model HeroSlide {
   updatedAt DateTime @updatedAt
 }
 
+// Anasayfa slider altındaki tanıtım videosu (tek kayıt)
+model HomeVideo {
+  id        String   @id @default("default")
+  videoPath String
+  href      String?
+  active    Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
 model Page {
-  id        String     @id @default(cuid())
-  slug      String     @unique
-  title     String
-  body      String     @db.Text
-  status    PageStatus @default(PUBLISHED)
-  sortOrder Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  title           String
+  body            String     @db.Text
+  status          PageStatus @default(PUBLISHED)
+  sortOrder       Int        @default(0)
+  metaTitle       String?
+  metaDescription String?    @db.Text
+  metaKeywords    String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+// Site geneli: logo, favicon, varsayılan SEO (tek kayıt)
+model SiteSettings {
+  id                  String   @id @default("default")
+  siteName            String   @default("Arabana Özel")
+  defaultMetaTitle    String   @default("Arabana Özel | Kişiye Özel Oto Aksesuar")
+  defaultMetaDescription String @default("Kişiye özel oto plakalık, anahtarlık, araç içi aksesuar ve sipariş yönetimi.") @db.Text
+  defaultMetaKeywords String?
+  titleTemplate       String   @default("%s | Arabana Özel")
+  logoPath            String   @default("")
+  faviconPath         String   @default("")
+  ogImagePath         String?
+  contactPhone        String?
+  contactEmail        String?
+  contactWhatsapp     String?
+  updatedAt           DateTime @updatedAt
+}
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  imagePath String
+  caption   String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+model BlogPost {
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  title           String
+  excerpt         String?    @db.Text
+  body            String     @db.Text
+  coverImagePath  String?
+  status          PageStatus @default(DRAFT)
+  publishedAt     DateTime?
+  metaTitle       String?
+  metaDescription String?    @db.Text
+  metaKeywords    String?
+  ogImagePath     String?
+  author          String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([status, publishedAt])
 }
 
 model Order {
-  id                String      @id @default(cuid())
-  orderNo           String      @unique
+  id                String          @id @default(cuid())
+  orderNo           String          @unique
+  paytrMerchantOid  String?         @unique
   customerFirstName String
   customerLastName  String
+  customerEmail     String?
   phone             String
   city              String
   district          String
-  address           String      @db.Text
-  status            OrderStatus @default(NEW)
-  subtotal          Decimal     @db.Decimal(10, 2)
-  shipmentTotal     Decimal     @db.Decimal(10, 2) @default(0)
-  total             Decimal     @db.Decimal(10, 2)
-  note              String?     @db.Text
+  address           String          @db.Text
+  status            OrderStatus     @default(NEW)
+  paymentMethod     PaymentMethod   @default(COD)
+  paymentStatus     PaymentStatus   @default(PAID)
+  subtotal          Decimal         @db.Decimal(10, 2)
+  shipmentTotal     Decimal         @db.Decimal(10, 2) @default(0)
+  total             Decimal         @db.Decimal(10, 2)
+  note              String?         @db.Text
   items             OrderItem[]
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model OrderItem {
@@ -114,7 +179,19 @@ enum OrderStatus {
   CONFIRMED
   PRODUCTION
   SHIPPED
+  DELIVERED
   CANCELLED
+}
+
+enum PaymentMethod {
+  PAYTR
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }
 
 enum PageStatus {

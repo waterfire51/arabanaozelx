@@ -1,9 +1,15 @@
+const LEGACY_SLUG_ALIASES: Record<string, string> = {
+  "otodark-katalog": "katalog"
+};
+
 export function normalizeLegacySlug(input: string) {
-  return input
+  const clean = input
     .replace(/^\/+/, "")
     .replace(/\/index\.html$/i, "")
     .replace(/\.html$/i, "")
     .replace(/\/+$/, "");
+
+  return LEGACY_SLUG_ALIASES[clean] ?? clean;
 }
 
 export function hrefForSlug(slug: string) {

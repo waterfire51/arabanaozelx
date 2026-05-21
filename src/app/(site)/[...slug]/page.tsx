@@ -1,10 +1,11 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageContent } from "@/components/page-content";
 import { ProductDesigner } from "@/components/product-designer";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { getHomeData, getPageBySlug, getProductBySlug } from "@/lib/data";
+import { getPageBySlug, getProductBySlug, getSiteSettings } from "@/lib/data";
 import { normalizeLegacySlug } from "@/lib/paths";
+import { resolvePageSeo } from "@/lib/page-seo";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -12,23 +13,30 @@ type SlugPageProps = {
   params: Promise<{ slug: string[] }>;
 };
 
+export async function generateMetadata({ params }: SlugPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const cleanSlug = normalizeLegacySlug(slug.join("/"));
+  const [page, settings] = await Promise.all([getPageBySlug(cleanSlug), getSiteSettings()]);
+
+  if (!page) {
+    return {};
+  }
+
+  return buildPageMetadata(resolvePageSeo(page, settings));
+}
+
 export default async function SlugPage({ params }: SlugPageProps) {
   const { slug } = await params;
   const cleanSlug = normalizeLegacySlug(slug.join("/"));
-  const [{ categories }, product, page] = await Promise.all([getHomeData(), getProductBySlug(cleanSlug), getPageBySlug(cleanSlug)]);
+  const [product, page] = await Promise.all([getProductBySlug(cleanSlug), getPageBySlug(cleanSlug)]);
 
   if (!product && !page) {
     notFound();
   }
 
-  return (
-    <>
-      <SiteHeader categories={categories} />
-      <main className="site-shell">
-        {product ? <ProductDesigner product={product} /> : null}
-        {page ? <PageContent page={page} /> : null}
-        <SiteFooter />
-      </main>
-    </>
-  );
+  if (product) {
+    return <ProductDesigner product={product} />;
+  }
+
+  return <PageContent page={page!} />;
 }

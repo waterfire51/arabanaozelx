@@ -1,10 +1,24 @@
+import { cache } from "react";
 import { prisma } from "./prisma";
-import { fallbackCategories, fallbackPages, fallbackProducts, fallbackSlides } from "./fallback";
+import { fallbackCategories, fallbackHomeVideo, fallbackPages, fallbackProducts, fallbackSlides } from "./fallback";
 import { normalizeLegacySlug } from "./paths";
 import type { IconCatalogCategory } from "./icons";
 import { assetPath } from "./assets";
 import { iconCategories as fallbackIconCategories, seedIcons } from "./seed-icon-data";
-import type { SiteCategory, SiteHeroSlide, SitePage, SiteProduct, SiteProductVariant } from "./types";
+import { fallbackBlogPosts } from "./fallback-blog";
+import { fallbackGalleryImages, serializeGalleryImage } from "./gallery";
+import { defaultSiteSettings } from "./site-settings";
+import type {
+  SiteBlogPost,
+  SiteCategory,
+  SiteGalleryImage,
+  SiteHeroSlide,
+  SiteHomeVideo,
+  SitePage,
+  SiteProduct,
+  SiteProductVariant,
+  SiteSettings
+} from "./types";
 
 function hasDatabaseUrl() {
   return Boolean(process.env.DATABASE_URL);
@@ -64,10 +78,23 @@ function serializeProduct(product: any): SiteProduct {
   };
 }
 
+async function loadHomeVideo(): Promise<SiteHomeVideo> {
+  try {
+    const row = await prisma.homeVideo.findUnique({ where: { id: "default" } });
+    if (row) {
+      return { videoPath: row.videoPath, href: row.href, active: row.active };
+    }
+  } catch {
+    // HomeVideo tablosu yoksa veya sorgu hatası — slider/ürünler yine DB'den gelir
+  }
+  return fallbackHomeVideo;
+}
+
 export async function getHomeData() {
   if (!hasDatabaseUrl()) {
     return {
       slides: fallbackSlides,
+      homeVideo: fallbackHomeVideo,
       categories: fallbackCategories,
       products: fallbackProducts,
       usingFallback: true
@@ -75,7 +102,7 @@ export async function getHomeData() {
   }
 
   try {
-    const [slides, categories, products] = await Promise.all([
+    const [slides, categories, products, homeVideo] = await Promise.all([
       prisma.heroSlide.findMany({
         where: { active: true },
         orderBy: { sortOrder: "asc" }
@@ -91,22 +118,44 @@ export async function getHomeData() {
           variants: { orderBy: { sortOrder: "asc" } }
         },
         orderBy: { sortOrder: "asc" }
-      })
+      }),
+      loadHomeVideo()
     ]);
 
     return {
       slides: slides as SiteHeroSlide[],
+      homeVideo,
       categories: categories as SiteCategory[],
       products: products.map(serializeProduct),
       usingFallback: false
     };
-  } catch {
+  } catch (error) {
+    console.error("[getHomeData] Veritabanı okunamadı:", error);
     return {
-      slides: fallbackSlides,
-      categories: fallbackCategories,
-      products: fallbackProducts,
+      slides: [],
+      homeVideo: fallbackHomeVideo,
+      categories: [],
+      products: [],
       usingFallback: true
     };
+  }
+}
+
+export async function getAdminHomeVideo() {
+  if (!hasDatabaseUrl()) {
+    return { homeVideo: fallbackHomeVideo, dbReady: false };
+  }
+
+  try {
+    const homeVideo = await prisma.homeVideo.findUnique({ where: { id: "default" } });
+    return {
+      homeVideo: homeVideo
+        ? { videoPath: homeVideo.videoPath, href: homeVideo.href, active: homeVideo.active }
+        : fallbackHomeVideo,
+      dbReady: true
+    };
+  } catch {
+    return { homeVideo: fallbackHomeVideo, dbReady: false };
   }
 }
 
@@ -132,6 +181,132 @@ export async function getProductBySlug(slug: string) {
   }
 }
 
+function serializeBlogPost(row: {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  coverImagePath: string | null;
+  status: string;
+  publishedAt: Date | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  metaKeywords: string | null;
+  ogImagePath: string | null;
+  author: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): SiteBlogPost {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    body: row.body,
+    coverImagePath: row.coverImagePath,
+    status: row.status as SiteBlogPost["status"],
+    publishedAt: row.publishedAt,
+    metaTitle: row.metaTitle,
+    metaDescription: row.metaDescription,
+    metaKeywords: row.metaKeywords,
+    ogImagePath: row.ogImagePath,
+    author: row.author,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
+  };
+}
+
+export async function getPublishedBlogPosts() {
+  if (!hasDatabaseUrl()) {
+    return { posts: fallbackBlogPosts, dbReady: false };
+  }
+
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
+    });
+
+    return {
+      posts: posts.map(serializeBlogPost),
+      dbReady: true
+    };
+  } catch (error) {
+    console.error("[getPublishedBlogPosts]", error);
+    return { posts: fallbackBlogPosts, dbReady: false };
+  }
+}
+
+export async function getBlogPostBySlug(slug: string) {
+  const cleanSlug = normalizeLegacySlug(slug);
+
+  if (!hasDatabaseUrl()) {
+    return fallbackBlogPosts.find((post) => post.slug === cleanSlug) ?? null;
+  }
+
+  try {
+    const post = await prisma.blogPost.findFirst({
+      where: { slug: cleanSlug, status: "PUBLISHED" }
+    });
+
+    return post ? serializeBlogPost(post) : null;
+  } catch {
+    return fallbackBlogPosts.find((post) => post.slug === cleanSlug) ?? null;
+  }
+}
+
+export async function getAdminBlogPosts() {
+  if (!hasDatabaseUrl()) {
+    return { posts: fallbackBlogPosts, dbReady: false };
+  }
+
+  try {
+    const posts = await prisma.blogPost.findMany({
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
+    });
+
+    return {
+      posts: posts.map(serializeBlogPost),
+      dbReady: true
+    };
+  } catch (error) {
+    console.error("[getAdminBlogPosts]", error);
+    return { posts: [], dbReady: false };
+  }
+}
+
+export const getSiteSettings = cache(async function getSiteSettings(): Promise<SiteSettings> {
+  if (!hasDatabaseUrl()) {
+    return defaultSiteSettings;
+  }
+
+  try {
+    const row = await prisma.siteSettings.findUnique({ where: { id: "default" } });
+    if (!row) {
+      return defaultSiteSettings;
+    }
+
+    return {
+      id: row.id,
+      siteName: row.siteName,
+      defaultMetaTitle: row.defaultMetaTitle,
+      defaultMetaDescription: row.defaultMetaDescription,
+      defaultMetaKeywords: row.defaultMetaKeywords,
+      titleTemplate: row.titleTemplate,
+      logoPath: row.logoPath,
+      faviconPath: row.faviconPath,
+      ogImagePath: row.ogImagePath,
+      contactPhone: row.contactPhone,
+      contactEmail: row.contactEmail,
+      contactWhatsapp: row.contactWhatsapp
+    };
+  } catch (error) {
+    console.error("[getSiteSettings]", error);
+    return defaultSiteSettings;
+  }
+});
+
 export async function getPageBySlug(slug: string) {
   const cleanSlug = normalizeLegacySlug(slug);
 
@@ -150,29 +325,111 @@ export async function getPageBySlug(slug: string) {
   }
 }
 
+export async function getPublishedGalleryImages() {
+  if (!hasDatabaseUrl()) {
+    return { images: fallbackGalleryImages(), dbReady: false };
+  }
+
+  try {
+    const rows = await prisma.galleryImage.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" }
+    });
+
+    if (rows.length === 0) {
+      return { images: fallbackGalleryImages(), dbReady: true };
+    }
+
+    return {
+      images: rows.map(serializeGalleryImage),
+      dbReady: true
+    };
+  } catch (error) {
+    console.error("[getPublishedGalleryImages]", error);
+    return { images: fallbackGalleryImages(), dbReady: false };
+  }
+}
+
+export async function getAdminGalleryImages() {
+  if (!hasDatabaseUrl()) {
+    return { images: fallbackGalleryImages(), dbReady: false };
+  }
+
+  try {
+    const rows = await prisma.galleryImage.findMany({
+      orderBy: { sortOrder: "asc" }
+    });
+
+    return {
+      images: rows.map(serializeGalleryImage),
+      dbReady: true
+    };
+  } catch (error) {
+    console.error("[getAdminGalleryImages]", error);
+    return { images: [], dbReady: false };
+  }
+}
+
+export async function getAdminSlides() {
+  if (!hasDatabaseUrl()) {
+    return { slides: [], dbReady: false };
+  }
+
+  try {
+    const slides = await prisma.heroSlide.findMany({
+      orderBy: { sortOrder: "asc" }
+    });
+
+    return {
+      slides: slides.map((slide) => ({
+        id: slide.id,
+        title: slide.title,
+        subtitle: slide.subtitle,
+        imagePath: slide.imagePath,
+        href: slide.href,
+        sortOrder: slide.sortOrder,
+        active: slide.active
+      })),
+      dbReady: true
+    };
+  } catch (error) {
+    console.error("[getAdminSlides] Veritabanı okunamadı:", error);
+    return { slides: [], dbReady: false };
+  }
+}
+
 export async function getAdminSummary() {
   if (!hasDatabaseUrl()) {
     return {
       products: fallbackProducts.length,
       orders: 0,
       pages: fallbackPages.length,
+      slides: fallbackSlides.length,
+      blogPosts: fallbackBlogPosts.length,
+      galleryImages: fallbackGalleryImages().length,
       dbReady: false
     };
   }
 
   try {
-    const [products, orders, pages] = await Promise.all([
+    const [products, orders, pages, slides, blogPosts, galleryImages] = await Promise.all([
       prisma.product.count(),
       prisma.order.count(),
-      prisma.page.count()
+      prisma.page.count(),
+      prisma.heroSlide.count(),
+      prisma.blogPost.count(),
+      prisma.galleryImage.count()
     ]);
 
-    return { products, orders, pages, dbReady: true };
+    return { products, orders, pages, slides, blogPosts, galleryImages, dbReady: true };
   } catch {
     return {
       products: fallbackProducts.length,
       orders: 0,
       pages: fallbackPages.length,
+      slides: fallbackSlides.length,
+      blogPosts: fallbackBlogPosts.length,
+      galleryImages: fallbackGalleryImages().length,
       dbReady: false
     };
   }

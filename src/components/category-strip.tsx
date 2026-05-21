@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { SiteCategory } from "@/lib/types";
+import type { SiteCategory, SiteHomeVideo } from "@/lib/types";
 import { assetPath } from "@/lib/paths";
 
 function categoryHref(slug: string) {
@@ -15,15 +15,34 @@ function categoryHref(slug: string) {
   return map[slug] ?? `/${slug}`;
 }
 
-export function CategoryStrip({ categories }: { categories: SiteCategory[] }) {
+export function CategoryStrip({
+  categories,
+  homeVideo
+}: {
+  categories: SiteCategory[];
+  homeVideo?: SiteHomeVideo | null;
+}) {
+  const showVideo = homeVideo?.active !== false && Boolean(homeVideo?.videoPath);
+  const videoSrc = homeVideo?.videoPath ? assetPath(homeVideo.videoPath) : "";
+
+  const videoBlock = showVideo ? (
+    <video autoPlay loop muted playsInline className="mb-4 h-auto w-full rounded-sm object-fill">
+      <source src={videoSrc} type="video/mp4" />
+    </video>
+  ) : null;
+
   return (
     <section className="bg-[#f8f8f8] pb-4">
       <div className="site-container">
-        <a href="https://plakacim.com/?utm_source=www.otodark.com" target="_blank" rel="noreferrer">
-          <video autoPlay loop muted playsInline className="mb-4 h-auto w-full rounded-sm object-fill">
-            <source src={assetPath("video/toptan-plakalik-ads-2.mp4")} type="video/mp4" />
-          </video>
-        </a>
+        {showVideo && videoBlock ? (
+          homeVideo?.href ? (
+            <a href={homeVideo.href} target="_blank" rel="noreferrer" className="block">
+              {videoBlock}
+            </a>
+          ) : (
+            videoBlock
+          )
+        ) : null}
 
         <div className="grid grid-cols-4 gap-4 md:grid-cols-6 lg:grid-cols-8">
           {categories.map((category) => (

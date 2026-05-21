@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Home, Menu, Phone, Rss, Truck, X } from "lucide-react";
-import { useState } from "react";
+import { BookOpen, FileText, Home, ImageIcon, Menu, Phone, Rss, Truck, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { SiteCategory } from "@/lib/types";
-import { assetPath } from "@/lib/assets";
+import { useSiteBranding } from "@/components/site-settings-context";
+import { WhatsAppFloatButton } from "@/components/whatsapp-float-button";
 
 function categoryHref(slug: string) {
   const map: Record<string, string> = {
@@ -35,23 +37,104 @@ const keywordLinks = [
 ];
 
 const menuLinks = [
-  { label: "Anasayfa", href: "/" },
-  { label: "Kargo Takip", href: "/kargo-takip" },
-  { label: "Galeri", href: "/galeri" },
-  { label: "İletişim", href: "/iletisim" },
-  { label: "Sözleşmeler", href: "/sozlesmeler" },
-  { label: "Yönetim Paneli", href: "/admin" }
-];
+  { label: "Anasayfa", href: "/", icon: Home },
+  { label: "Blog", href: "/blog", icon: Rss },
+  { label: "Kargo Takip", href: "/kargo-takip", icon: Truck },
+  { label: "Galeri", href: "/galeri", icon: ImageIcon },
+  { label: "İletişim", href: "/iletisim", icon: Phone },
+  { label: "Sözleşmeler", href: "/sozlesmeler", icon: FileText }
+] as const;
 
 export function SiteHeader({ categories = [] }: SiteHeaderProps) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { logoUrl, siteName, settings } = useSiteBranding();
+  const phone = settings.contactWhatsapp?.replace(/\D/g, "") || "";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const mobileMenu =
+    mounted &&
+    createPortal(
+      <>
+        {open ? (
+          <button
+            type="button"
+            className="fixed inset-0 z-[10000] bg-black/40 lg:hidden"
+            aria-label="Menüyü kapat"
+            onClick={() => setOpen(false)}
+          />
+        ) : null}
+
+        <aside
+          id="site-mobile-menu"
+          aria-hidden={!open}
+          className={`fixed right-0 top-[66px] z-[10001] flex h-[calc(100vh-66px)] w-[280px] max-w-[calc(100vw-2rem)] flex-col bg-gradient-to-b from-[#f1f1f1] to-[#f2f8ff] p-8 shadow-[-5px_0_15px_rgba(0,0,0,0.16)] transition-transform duration-300 lg:hidden md:top-[78px] md:h-[calc(100vh-78px)] ${
+            open ? "translate-x-0" : "pointer-events-none translate-x-full"
+          }`}
+        >
+          <div className="text-center">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={siteName}
+                width={140}
+                height={64}
+                decoding="sync"
+                className="mx-auto mb-3 h-16 w-auto max-w-[140px] object-contain"
+              />
+            ) : null}
+            <p className="font-semibold text-[#06142d]">{siteName}</p>
+          </div>
+
+          <nav className="mt-6 flex-1 overflow-y-auto">
+            {menuLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center gap-3 border-b-2 border-white px-2 py-4 text-[#06142d] hover:text-red-600"
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon size={16} />
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+      </>,
+      document.body
+    );
 
   return (
     <>
-      <header className="fixed left-0 top-0 z-[999] w-full border-b border-[#f1f1f1] bg-white">
+      <header className="site-header left-0 top-0 z-[999] w-full border-b border-[#f1f1f1] bg-white">
         <div className="site-container flex h-[78px] items-center justify-between gap-4 max-md:h-[66px]">
           <Link href="/" aria-label="Anasayfa" className="flex items-center">
-            <img src={assetPath("site_gorsel/logo.png")} alt="Otodark" className="h-auto w-[118px] max-md:w-[96px]" />
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={siteName}
+                width={118}
+                height={40}
+                decoding="sync"
+                fetchPriority="high"
+                className="h-auto w-[118px] max-md:w-[96px]"
+              />
+            ) : (
+              <span className="text-lg font-black text-black">{siteName}</span>
+            )}
           </Link>
 
           <div className="hidden flex-1 justify-center gap-2 lg:flex">
@@ -73,12 +156,14 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             <Link className="legacy-header-icon" href="/kargo-takip" title="Sipariş Takip">
               <Truck size={20} />
             </Link>
-            <Link className="legacy-header-icon max-md:hidden" href="/otodark-katalog" title="Katalog">
+            <Link className="legacy-header-icon max-md:hidden" href="/katalog" title="Katalog">
               <BookOpen size={20} />
             </Link>
-            <a className="legacy-header-icon" href="tel:905495742025" title="Bizi Arayın">
-              <Phone size={20} />
-            </a>
+            {phone ? (
+              <a className="legacy-header-icon" href={`tel:+${phone.startsWith("90") ? phone : `90${phone}`}`} title="Bizi Arayın">
+                <Phone size={20} />
+              </a>
+            ) : null}
             <button
               type="button"
               className="legacy-header-icon"
@@ -106,42 +191,9 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
         </div>
       </header>
 
-      <div
-        className={`fixed right-0 top-[78px] z-[9999] h-screen w-[280px] max-w-full bg-gradient-to-b from-[#f1f1f1] to-[#f2f8ff] p-10 shadow-[-5px_0_15px_rgba(0,0,0,0.16)] transition-transform duration-300 max-md:top-[66px] ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="text-center">
-          <img src={assetPath("site_gorsel/ddark.png")} alt="Dark Otomotiv" className="mx-auto mb-3 h-16 w-16 rounded-full object-contain" />
-          <p className="font-semibold text-[#06142d]">
-            Dark Otomotiv <span className="block text-xs font-normal">www.otodark.com</span>
-          </p>
-        </div>
+      {mobileMenu}
 
-        <nav className="mt-8 max-h-[420px] overflow-y-auto">
-          {menuLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex items-center gap-3 border-b-2 border-white px-2 py-4 text-[#06142d] hover:text-red-600"
-              onClick={() => setOpen(false)}
-            >
-              <Home size={16} />
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
-
-      <a
-        href="https://wa.me/905495742025?text=Merhaba,%20yard%C4%B1mc%C4%B1%20olabilir%20misiniz?"
-        target="_blank"
-        rel="noreferrer"
-        className="fixed bottom-1/2 left-3 z-[100] grid h-[60px] w-[60px] place-items-center rounded-full bg-[#25d366] text-center text-[24px] font-black text-white shadow-lg"
-        aria-label="WhatsApp"
-      >
-        W
-      </a>
+      <WhatsAppFloatButton />
     </>
   );
 }

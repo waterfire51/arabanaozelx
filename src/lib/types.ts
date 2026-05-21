@@ -42,12 +42,64 @@ export type SiteHeroSlide = {
   sortOrder?: number;
 };
 
+export type SiteHomeVideo = {
+  videoPath: string;
+  href?: string | null;
+  active?: boolean;
+};
+
 export type SitePage = {
   id?: string;
   slug: string;
   title: string;
   body: string;
+  status?: "DRAFT" | "PUBLISHED";
   sortOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  metaKeywords?: string | null;
+};
+
+export type SiteSettings = {
+  id?: string;
+  siteName: string;
+  defaultMetaTitle: string;
+  defaultMetaDescription: string;
+  defaultMetaKeywords?: string | null;
+  titleTemplate: string;
+  logoPath: string;
+  faviconPath: string;
+  ogImagePath?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  contactWhatsapp?: string | null;
+};
+
+export type SiteGalleryImage = {
+  id: string;
+  imagePath: string;
+  url: string;
+  caption?: string | null;
+  sortOrder?: number;
+  active?: boolean;
+};
+
+export type SiteBlogPost = {
+  id?: string;
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  body: string;
+  coverImagePath?: string | null;
+  status?: "DRAFT" | "PUBLISHED";
+  publishedAt?: string | Date | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  metaKeywords?: string | null;
+  ogImagePath?: string | null;
+  author?: string | null;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 };
 
 export type SiteOrder = {

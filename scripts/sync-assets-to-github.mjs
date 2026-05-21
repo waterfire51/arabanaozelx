@@ -1,5 +1,5 @@
 /**
- * Otodark görsellerini arabanaozelx_assets reposuna taşır.
+ * Ürün ve site görsellerini arabanaozelx_assets reposuna taşır.
  * Kullanım: GITHUB_TOKEN=xxx node scripts/sync-assets-to-github.mjs
  */
 
@@ -81,13 +81,18 @@ const ASSET_MANIFEST = [
     "icon_gorsel/iconanahtarlik.png",
     "icon_gorsel/iconguneslikorganizer.png",
     "icon_gorsel/iconboyunyastik.png",
+    "assets/image/plakalik.png",
     "site_gorsel/logo.png",
-    "site_gorsel/ddark.png",
     "site_gorsel/visa-master-3d-iyzico.png",
     "video/toptan-plakalik-ads-2.mp4"
   ],
   ...Array.from({ length: 28 }, (_, index) => `wp_musteri_gorsel/${String(index + 1).padStart(3, "0")}.jpg`)
 ];
+
+/** public/ altından GitHub'a yüklenir */
+const LOCAL_ASSET_SOURCES = {
+  "assets/image/plakalik.png": path.join(root, "public", "assets", "image", "plakalik.png")
+};
 
 function legacyDownloadUrl(repoPath) {
   const file = repoPath.split("/").pop();
@@ -105,6 +110,10 @@ function legacyDownloadUrl(repoPath) {
       return `${LEGACY_BASE}/assets/img/slider/min/${file}`;
     }
     return `${LEGACY_BASE}/assets/img/slider/${file}`;
+  }
+
+  if (repoPath.startsWith("assets/image/")) {
+    return `${LEGACY_BASE}/assets/image/${file}`;
   }
 
   if (repoPath.startsWith("site_gorsel/")) {
@@ -260,6 +269,15 @@ async function downloadBuffer(url) {
   return Buffer.from(await response.arrayBuffer());
 }
 
+async function loadAssetBuffer(repoPath) {
+  const localPath = LOCAL_ASSET_SOURCES[repoPath];
+  if (localPath && fs.existsSync(localPath)) {
+    return readFile(localPath);
+  }
+  const url = legacyDownloadUrl(repoPath);
+  return downloadBuffer(url);
+}
+
 async function main() {
   if (!TOKEN) {
     throw new Error("GITHUB_TOKEN gerekli.");
@@ -273,9 +291,8 @@ async function main() {
 
   for (const repoPath of ASSET_MANIFEST) {
     try {
-      const url = legacyDownloadUrl(repoPath);
-      const buffer = await downloadBuffer(url);
-      await uploadBinary(repoPath, buffer, `sync otodark asset: ${repoPath}`);
+      const buffer = await loadAssetBuffer(repoPath);
+      await uploadBinary(repoPath, buffer, `sync asset: ${repoPath}`);
       ok += 1;
       console.log(`OK ${repoPath}`);
     } catch (error) {

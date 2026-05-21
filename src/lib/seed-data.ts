@@ -1,3 +1,5 @@
+import { contractPages } from "./contract-pages";
+
 export const heroSlides = [
   { imagePath: "slider_gorsel/isiklioto.jpg", title: "Kişiye Özel Oto Plakalık", href: "/plplakalik/otomobil" },
   { imagePath: "slider_gorsel/isiksizoto.webp", title: "Kabartma Plakalık Tasarla", href: "/plakalik/otomobil" },
@@ -49,7 +51,7 @@ export const pages = [
   {
     slug: "iletisim",
     title: "İletişim",
-    body: "Adres: Fevziçakmak Mah. Okyar Cad. Kobisan 4. San. Sit. A3 Blok No:18/3A Karatay/Konya\n\nTelefon ve WhatsApp: 0(549) 574 20 25\n\nE-posta: info@otodark.com"
+    body: "Adres: Fevziçakmak Mah. Okyar Cad. Kobisan 4. San. Sit. A3 Blok No:18/3A Karatay/Konya\n\nTelefon ve WhatsApp: 0(549) 574 20 25\n\nE-posta: info@arabanaozel.com"
   },
   {
     slug: "kargo-takip",
@@ -61,44 +63,22 @@ export const pages = [
     title: "Galeri",
     body: "Müşterilerimizden gelen uygulama fotoğrafları."
   },
-  {
-    slug: "sozlesmeler",
-    title: "Sözleşmeler",
-    body: "Satış sözleşmesi, iade ve iptal sözleşmesi, KVKK ve gizlilik metinlerine bu sayfadan erişebilirsiniz."
-  },
-  {
-    slug: "gizlilik-sozlesmesi",
-    title: "Gizlilik Sözleşmesi",
-    body: "Kişisel verileriniz sipariş, teslimat ve destek süreçlerinin yürütülmesi için saklanır ve işlenir."
-  },
-  {
-    slug: "kvkk",
-    title: "KVKK",
-    body: "Kişisel veriler 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında işlenir."
-  },
-  {
-    slug: "satis-sozlesmesi",
-    title: "Satış Sözleşmesi",
-    body: "Mesafeli satış şartları, ürün bedeli, teslimat ve cayma hakkı bilgileri bu metinde yer alır."
-  },
-  {
-    slug: "iade-ve-ipal-sozlesmesi",
-    title: "İade ve İptal Sözleşmesi",
-    body: "Kişiye özel üretilen ürünlerde iade süreçleri özel üretim niteliğine göre değerlendirilir."
-  },
+  ...contractPages.map((page) => ({
+    slug: page.slug,
+    title: page.title,
+    body: page.body,
+    metaTitle: page.metaTitle,
+    metaDescription: page.metaDescription,
+    metaKeywords: page.metaKeywords
+  })),
   {
     slug: "musteri-memnuniyet",
     title: "Müşteri Memnuniyeti",
     body: "Üretimden teslimata kadar siparişlerinizi takip ediyor, destek taleplerinize hızlı dönüş yapıyoruz."
   },
   {
-    slug: "otodark-katalog",
-    title: "Otodark Katalog",
+    slug: "katalog",
+    title: "Ürün Kataloğu",
     body: "Ürün kataloğu yönetim panelinden güncellenebilir ürün listesiyle dinamik olarak hazırlanır."
   },
-  {
-    slug: "blog",
-    title: "Blog",
-    body: "Oto aksesuar seçimi, kişiye özel plakalık tasarımı ve ürün kullanım ipuçları için blog içerikleri yönetim panelinden güncellenebilir."
-  }
 ];
