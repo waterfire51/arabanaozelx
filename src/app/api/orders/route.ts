@@ -9,6 +9,7 @@ import {
   requestPaytrIframeToken
 } from "@/lib/paytr";
 import { getSiteBaseUrl } from "@/lib/site-url";
+import { parsePlateDesigns } from "@/lib/plate-design";
 
 function orderNumber() {
   const date = new Date();
@@ -70,8 +71,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const designs = Array.isArray(body.designs) ? body.designs : [];
-    const tooLongText = designs.some((design) => String(design?.text ?? "").length > 24);
+    const designs = parsePlateDesigns(body.designs);
+    const tooLongText = designs.some((design) => design.text.length > 24);
 
     if (tooLongText) {
       return NextResponse.json({ message: "Plakalık yazısı en fazla 24 karakter olabilir." }, { status: 400 });
