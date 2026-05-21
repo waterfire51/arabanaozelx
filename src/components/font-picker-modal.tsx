@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { FONT_PREVIEW_SAMPLE, PLATE_FONT_OPTIONS } from "@/lib/plate-design";
+import { FONT_PREVIEW_SAMPLE, normalizePlateFontFamily, PLATE_FONT_OPTIONS } from "@/lib/plate-design";
 
 type FontPickerModalProps = {
   open: boolean;
@@ -41,7 +41,7 @@ export function FontPickerModal({ open, value, onChange, onClose }: FontPickerMo
         <div className="overflow-y-auto px-4 py-4 sm:px-5">
           <div className="grid gap-3">
             {PLATE_FONT_OPTIONS.map((font) => {
-              const active = value === font.family;
+              const active = normalizePlateFontFamily(value) === font.family;
               return (
                 <button
                   key={font.id}

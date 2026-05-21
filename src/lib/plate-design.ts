@@ -16,12 +16,31 @@ export type PlateFontOption = {
 /** Modal önizleme metni */
 export const FONT_PREVIEW_SAMPLE = "İSİM SOYİSİM";
 
+/** Plaka önizleme / baskı fontları — public/fonts/plate */
 export const PLATE_FONT_OPTIONS: PlateFontOption[] = [
-  { id: "ethnocentric", label: "ETHNOCENTRIC", family: "Orbitron, sans-serif" },
-  { id: "aviano", label: "AVIANO", family: '"Playfair Display", serif' },
-  { id: "sonsie", label: "SONSIE", family: '"Sonsie One", cursive' },
-  { id: "sigmar", label: "SIGMAR", family: "Sigmar, sans-serif" }
+  { id: "ethnocentric", label: "ETHNOCENTRIC", family: '"Ethnocentric", sans-serif' },
+  { id: "aviano", label: "AVIANO", family: '"Aviano", serif' },
+  { id: "sonsie", label: "SONSIE", family: '"Sonsie", cursive' },
+  { id: "sigmar", label: "SIGMAR", family: '"Sigmar", sans-serif' }
 ];
+
+const LEGACY_PLATE_FONT_ALIASES: Record<string, string> = {
+  "orbitron, sans-serif": PLATE_FONT_OPTIONS[0].family,
+  '"orbitron", sans-serif': PLATE_FONT_OPTIONS[0].family,
+  '"playfair display", serif': PLATE_FONT_OPTIONS[1].family,
+  '"sonsie one", cursive': PLATE_FONT_OPTIONS[2].family,
+  "sigmar, sans-serif": PLATE_FONT_OPTIONS[3].family
+};
+
+export function normalizePlateFontFamily(family: string) {
+  const trimmed = family.trim();
+  const alias = LEGACY_PLATE_FONT_ALIASES[trimmed.toLowerCase()];
+  if (alias) {
+    return alias;
+  }
+  const byId = PLATE_FONT_OPTIONS.find((item) => item.id === trimmed.toLowerCase());
+  return byId?.family ?? trimmed;
+}
 
 export const PLATE_FONTS = PLATE_FONT_OPTIONS.map((item) => item.family);
 
@@ -47,11 +66,14 @@ export function getPlateFontLabel(family: string) {
   return PLATE_FONT_OPTIONS.find((item) => item.family === family)?.label ?? family;
 }
 
-export function plateTextGlow(color: string) {
-  if (color === "white") {
-    return "0 2px 6px rgba(0, 0, 0, 0.55)";
-  }
-  return `0 0 14px ${color}, 0 2px 4px rgba(0, 0, 0, 0.45)`;
+/** Siyah plaka üzerinde okunabilirlik; renkli glow yok (eski site ile uyumlu) */
+export function plateTextShadow() {
+  return "0 1px 2px rgba(0, 0, 0, 0.75)";
+}
+
+/** @deprecated plateTextShadow kullanın */
+export function plateTextGlow(_color?: string) {
+  return plateTextShadow();
 }
 
 function pickSymbolPath(source: Record<string, unknown>, keys: string[]) {
@@ -88,7 +110,9 @@ export function parsePlateDesignEntry(raw: unknown): PlatePrintDesign | null {
   return {
     text: String(entry.text ?? ""),
     textColor: String(entry.textColor ?? entry.text_color ?? "white"),
-    fontFamily: String(entry.fontFamily ?? entry.font_family ?? PLATE_FONT_OPTIONS[0].family),
+    fontFamily: normalizePlateFontFamily(
+      String(entry.fontFamily ?? entry.font_family ?? PLATE_FONT_OPTIONS[0].family)
+    ),
     align,
     leftSymbol,
     rightSymbol

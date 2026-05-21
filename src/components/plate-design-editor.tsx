@@ -11,7 +11,8 @@ import {
   getPlateColorLabel,
   getPlateFontLabel,
   PLATE_ALIGN_OPTIONS,
-  plateTextGlow
+  normalizePlateFontFamily,
+  plateTextShadow
 } from "@/lib/plate-design";
 
 export type PlateDesign = {
@@ -56,7 +57,7 @@ export function PlateDesignEditor({
 
   const isPlaceholder = !design.text.trim();
   const colorLabel = getPlateColorLabel(design.textColor);
-  const fontLabel = getPlateFontLabel(design.fontFamily);
+  const fontLabel = getPlateFontLabel(normalizePlateFontFamily(design.fontFamily));
 
   function focusPlateText() {
     textInputRef.current?.focus();
@@ -127,8 +128,8 @@ export function PlateDesignEditor({
             style={{
               color: isPlaceholder ? "rgba(255,255,255,0.45)" : design.textColor,
               textAlign: design.align,
-              fontFamily: design.fontFamily,
-              textShadow: isPlaceholder ? "none" : plateTextGlow(design.textColor)
+              fontFamily: normalizePlateFontFamily(design.fontFamily),
+              textShadow: isPlaceholder ? "none" : plateTextShadow()
             }}
           />
           <button

@@ -1,5 +1,11 @@
 import { resolveSymbolAssetPath } from "@/lib/icons";
-import { getPlateColorLabel, parsePlateDesigns, plateTextGlow } from "@/lib/plate-design";
+import {
+  getPlateColorLabel,
+  normalizePlateFontFamily,
+  parsePlateDesigns,
+  PLATE_FONT_OPTIONS,
+  plateTextShadow
+} from "@/lib/plate-design";
 
 export function OrderDesignPreview({ designs: rawDesigns }: { designs: unknown }) {
   const designs = parsePlateDesigns(rawDesigns);
@@ -20,8 +26,8 @@ export function OrderDesignPreview({ designs: rawDesigns }: { designs: unknown }
               className="max-w-[140px] truncate text-xs font-black uppercase"
               style={{
                 color: design.textColor || "#fff",
-                fontFamily: design.fontFamily || "Arial",
-                textShadow: plateTextGlow(design.textColor || "white")
+                fontFamily: normalizePlateFontFamily(design.fontFamily || PLATE_FONT_OPTIONS[0].family),
+                textShadow: plateTextShadow()
               }}
             >
               {design.text || "—"}

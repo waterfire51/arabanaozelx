@@ -48,10 +48,6 @@ export default async function RootLayout({
         <link rel="stylesheet" href="/assets/css/plugins/plugins.min.css" />
         <link rel="stylesheet" href="/assets/css/style.css" />
         <link rel="stylesheet" href="/inc_all/css/style.css" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Playfair+Display:wght@700&family=Sonsie+One&family=Sigmar&display=swap"
-        />
       </head>
       <body>
         <SiteSettingsProvider branding={branding}>{children}</SiteSettingsProvider>
