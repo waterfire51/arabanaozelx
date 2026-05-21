@@ -5,7 +5,7 @@ import { AlignCenter, AlignLeft, AlignRight, ChevronDown } from "lucide-react";
 import { ColorPickerPopover } from "@/components/color-picker-popover";
 import { FontPickerModal } from "@/components/font-picker-modal";
 import { IconPicker, IconPickerModal } from "@/components/icon-picker";
-import { resolveSymbolAssetPath } from "@/lib/icons";
+import { PlateSymbol } from "@/components/plate-symbol";
 import { plateFrameImagePath } from "@/lib/assets";
 import {
   getPlateColorLabel,
@@ -103,17 +103,12 @@ export function PlateDesignEditor({
             }
           }}
         >
-          <button
-            type="button"
-            className="plate-symbol plate-symbol-left"
+          <PlateSymbol
+            symbolPath={design.leftSymbol}
+            side="left"
             title="Sol şekil seç"
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpenSymbolPicker("left");
-            }}
-          >
-            <img src={resolveSymbolAssetPath(design.leftSymbol)} alt="" />
-          </button>
+            onClick={() => onOpenSymbolPicker("left")}
+          />
           <input
             ref={textInputRef}
             type="text"
@@ -132,17 +127,12 @@ export function PlateDesignEditor({
               textShadow: isPlaceholder ? "none" : plateTextShadow()
             }}
           />
-          <button
-            type="button"
-            className="plate-symbol plate-symbol-right"
+          <PlateSymbol
+            symbolPath={design.rightSymbol}
+            side="right"
             title="Sağ şekil seç"
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpenSymbolPicker("right");
-            }}
-          >
-            <img src={resolveSymbolAssetPath(design.rightSymbol)} alt="" />
-          </button>
+            onClick={() => onOpenSymbolPicker("right")}
+          />
         </div>
       </div>
 

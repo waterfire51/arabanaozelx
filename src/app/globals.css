@@ -411,29 +411,56 @@ main header:not(.site-header) {
   text-transform: uppercase;
 }
 
+/* Plaka ikonları: yüksekliğe göre ölçeklenir (yatay çubuklar küçülmez) */
 .plate-symbol {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 50%;
-  width: 44px;
-  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  width: auto;
+  max-width: 72px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   transform: translateY(-50%);
-  object-fit: contain;
+  cursor: pointer;
 }
 
 .plate-symbol img {
-  width: 100%;
-  height: 100%;
+  display: block;
+  height: 54px;
+  width: auto;
+  max-width: 72px;
   object-fit: contain;
+  object-position: center;
   pointer-events: none;
 }
 
+.plate-symbol-wide {
+  max-width: min(38%, 132px);
+}
+
+.plate-symbol-wide img {
+  max-width: min(38vw, 132px);
+}
+
 .plate-symbol-left {
-  left: 30px;
+  left: 22px;
 }
 
 .plate-symbol-right {
-  right: 30px;
+  right: 22px;
+}
+
+.plate-symbol-left img {
+  object-position: left center;
+}
+
+.plate-symbol-right img {
+  object-position: right center;
 }
 
 /* İkon seçici modal — kategori daireleri */
@@ -572,16 +599,29 @@ main header:not(.site-header) {
   }
 
   .plate-symbol {
-    width: 32px;
-    height: 32px;
+    height: 44px;
+    max-width: 56px;
+  }
+
+  .plate-symbol img {
+    height: 44px;
+    max-width: 56px;
+  }
+
+  .plate-symbol-wide {
+    max-width: min(44%, 108px);
+  }
+
+  .plate-symbol-wide img {
+    max-width: min(44vw, 108px);
   }
 
   .plate-symbol-left {
-    left: 18px;
+    left: 14px;
   }
 
   .plate-symbol-right {
-    right: 18px;
+    right: 14px;
   }
 }
 

@@ -20,7 +20,11 @@ export function OrderDesignPreview({ designs: rawDesigns }: { designs: unknown }
         <div key={index} className="rounded border border-gray-100 bg-gray-50 p-2">
           <div className="flex items-center gap-2">
             {design.leftSymbol ? (
-              <img src={resolveSymbolAssetPath(design.leftSymbol)} alt="" className="h-8 w-8 object-contain" />
+              <img
+                src={resolveSymbolAssetPath(design.leftSymbol)}
+                alt=""
+                className="h-8 w-auto max-w-[72px] object-contain object-left"
+              />
             ) : null}
             <span
               className="max-w-[140px] truncate text-xs font-black uppercase"
@@ -33,7 +37,11 @@ export function OrderDesignPreview({ designs: rawDesigns }: { designs: unknown }
               {design.text || "—"}
             </span>
             {design.rightSymbol ? (
-              <img src={resolveSymbolAssetPath(design.rightSymbol)} alt="" className="h-8 w-8 object-contain" />
+              <img
+                src={resolveSymbolAssetPath(design.rightSymbol)}
+                alt=""
+                className="h-8 w-auto max-w-[72px] object-contain object-right"
+              />
             ) : null}
           </div>
           <p className="mt-1 text-[10px] font-semibold text-gray-500">
