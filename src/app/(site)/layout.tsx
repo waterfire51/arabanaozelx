@@ -1,3 +1,4 @@
+import { SiteAnalytics } from "@/components/site-analytics";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getHomeData } from "@/lib/data";
@@ -9,6 +10,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <>
+      <SiteAnalytics />
       <SiteHeader categories={categories} />
       <main className="site-shell">{children}</main>
       <SiteFooter />

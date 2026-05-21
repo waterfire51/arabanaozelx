@@ -476,6 +476,10 @@ main header:not(.site-header) {
   color: #171717;
 }
 
+.admin-dashboard code {
+  font-size: 0.75rem;
+}
+
 .form-input {
   width: 100%;
   border-radius: 8px;

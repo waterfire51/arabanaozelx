@@ -5,7 +5,7 @@ import { getSiteSettings } from "@/lib/data";
 import { brandingAssetUrl, resolveSiteBranding } from "@/lib/site-settings";
 
 const links = [
-  { href: "/admin", label: "Özet", icon: LayoutDashboard },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Ürünler", icon: Box },
   { href: "/admin/slides", label: "Anasayfa", icon: Images },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },

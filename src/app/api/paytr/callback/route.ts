@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { recordAnalyticsEvent } from "@/lib/analytics-server";
 import { getPaytrConfig, verifyPaytrCallbackHash, type PaytrCallbackPayload } from "@/lib/paytr";
 
 export async function POST(request: Request) {
@@ -27,7 +28,8 @@ export async function POST(request: Request) {
   }
 
   const order = await prisma.order.findFirst({
-    where: { paytrMerchantOid: payload.merchant_oid }
+    where: { paytrMerchantOid: payload.merchant_oid },
+    include: { items: { include: { product: true }, take: 1 } }
   });
 
   if (!order) {
@@ -46,6 +48,18 @@ export async function POST(request: Request) {
         status: "CONFIRMED"
       }
     });
+
+    const item = order.items[0];
+    if (item?.product) {
+      void recordAnalyticsEvent({
+        type: "ORDER_COMPLETE",
+        sessionId: `order:${order.orderNo}`,
+        path: `/${item.product.slug}`,
+        productId: item.product.id,
+        productSlug: item.product.slug,
+        productName: item.product.name
+      });
+    }
   } else {
     await prisma.order.update({
       where: { id: order.id },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, CreditCard, Send } from "lucide-react";
 import type { SiteProduct, SiteProductVariant } from "@/lib/types";
 import { PlateDesignEditor, type PlateDesign } from "@/components/plate-design-editor";
@@ -12,6 +12,11 @@ import { isPlakalikProduct } from "@/lib/product-notices";
 import { PLATE_FONT_OPTIONS } from "@/lib/plate-design";
 import { PaymentMethodPicker, type CheckoutPaymentMethod } from "@/components/payment-method-picker";
 import { PaytrCheckoutModal } from "@/components/paytr-checkout-modal";
+import {
+  getAnalyticsSessionId,
+  getStoredAttribution,
+  trackAnalytics
+} from "@/lib/analytics-track-client";
 
 type Design = PlateDesign;
 
@@ -94,7 +99,29 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
   const [result, setResult] = useState<{ ok: boolean; message: string; orderNo?: string } | null>(null);
   const [symbolPicker, setSymbolPicker] = useState<{ index: number; side: "left" | "right" } | null>(null);
   const [designApproved, setDesignApproved] = useState(false);
+  const cartIntentTracked = useRef(false);
   const showPlakalikNotices = isPlakalikProduct(product.slug);
+
+  const productTrack = useMemo(
+    () => ({
+      productId: product.id,
+      productSlug: product.slug,
+      productName: product.name
+    }),
+    [product.id, product.slug, product.name]
+  );
+
+  useEffect(() => {
+    trackAnalytics("PRODUCT_VIEW", productTrack);
+  }, [productTrack]);
+
+  function trackCartIntent() {
+    if (cartIntentTracked.current) {
+      return;
+    }
+    cartIntentTracked.current = true;
+    trackAnalytics("ADD_TO_CART", productTrack);
+  }
 
   const total = useMemo(() => variant.unitPrice + variant.shipmentPrice, [variant]);
 
@@ -131,6 +158,9 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
       return;
     }
 
+    trackCartIntent();
+    trackAnalytics("CHECKOUT_START", productTrack);
+
     setLoading(true);
     setResult(null);
     setPaytrToken(null);
@@ -144,7 +174,9 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
         variant,
         designs,
         paymentMethod,
-        customer
+        customer,
+        analyticsSessionId: getAnalyticsSessionId(),
+        analyticsAttribution: getStoredAttribution()
       })
     });
 
@@ -157,11 +189,13 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
     }
 
     if (data.paytrToken && data.orderNo) {
+      trackAnalytics("PAYMENT_START", productTrack);
       setPaytrOrderNo(data.orderNo);
       setPaytrToken(data.paytrToken);
       return;
     }
 
+    trackAnalytics("ORDER_COMPLETE", productTrack);
     setResult({ ok: true, message: "Siparişiniz alındı. Kapıda ödeme ile teslimatta ödeyeceksiniz.", orderNo: data.orderNo });
   }
 
@@ -237,7 +271,13 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
             <div className="grid grid-cols-2 gap-3">
               <label>
                 <span className="form-label">Adı</span>
-                <input className="form-input" required value={customer.firstName} onChange={(event) => setCustomer({ ...customer, firstName: event.target.value })} />
+                <input
+                  className="form-input"
+                  required
+                  value={customer.firstName}
+                  onFocus={trackCartIntent}
+                  onChange={(event) => setCustomer({ ...customer, firstName: event.target.value })}
+                />
               </label>
               <label>
                 <span className="form-label">Soyadı</span>

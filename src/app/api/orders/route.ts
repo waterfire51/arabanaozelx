@@ -10,6 +10,7 @@ import {
 } from "@/lib/paytr";
 import { getSiteBaseUrl } from "@/lib/site-url";
 import { parsePlateDesigns } from "@/lib/plate-design";
+import { recordAnalyticsEvent } from "@/lib/analytics-server";
 
 function orderNumber() {
   const date = new Date();
@@ -157,6 +158,18 @@ export async function POST(request: Request) {
         );
       }
     }
+
+    const sessionId = String(body.analyticsSessionId || `order:${order.orderNo}`);
+    void recordAnalyticsEvent({
+      type: "ORDER_COMPLETE",
+      sessionId,
+      path: `/${product.slug}`,
+      productId: product.id,
+      productSlug: product.slug,
+      productName: product.name,
+      attribution: body.analyticsAttribution,
+      userAgent: request.headers.get("user-agent")
+    });
 
     return NextResponse.json({
       orderNo: order.orderNo,

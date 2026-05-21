@@ -229,3 +229,37 @@ enum IconSource {
   ADMIN
   CUSTOMER
 }
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  ADD_TO_CART
+  CHECKOUT_START
+  PAYMENT_START
+  ORDER_COMPLETE
+}
+
+model AnalyticsEvent {
+  id           String             @id @default(cuid())
+  type         AnalyticsEventType
+  sessionId    String
+  path         String?
+  productId    String?
+  productSlug  String?
+  productName  String?
+  referrer     String?            @db.Text
+  referrerHost String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmContent   String?
+  sourceLabel  String?
+  device       String?
+  createdAt    DateTime           @default(now())
+
+  @@index([type, createdAt])
+  @@index([sessionId, createdAt])
+  @@index([productSlug, createdAt])
+  @@index([sourceLabel, createdAt])
+  @@index([device, createdAt])
+}
