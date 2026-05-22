@@ -3,16 +3,7 @@ import type { SiteCategory, SiteHomeVideo } from "@/lib/types";
 import { assetPath } from "@/lib/paths";
 
 function categoryHref(slug: string) {
-  const map: Record<string, string> = {
-    plakalik: "/plakalik/otomobil",
-    "motor-plakalik": "/plakalik/motor",
-    "kapi-esigi": "/kapiesigi",
-    anahtarlik: "/anahtarlik",
-    "oto-aksesuar": "/guneslik",
-    konfor: "/belyastigi"
-  };
-
-  return map[slug] ?? `/${slug}`;
+  return `/kategori/${slug}`;
 }
 
 export function CategoryStrip({

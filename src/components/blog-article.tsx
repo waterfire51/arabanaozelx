@@ -1,31 +1,15 @@
 import Link from "next/link";
 import { Calendar, ChevronLeft, User } from "lucide-react";
-import type { SiteBlogPost } from "@/lib/types";
+import type { SiteBlogPost, SiteSettings } from "@/lib/types";
 import { assetPath } from "@/lib/paths";
 import { formatBlogDate } from "@/lib/blog";
 import { isBlogHtml, sanitizeBlogHtml } from "@/lib/blog-html";
-import { getSiteBaseUrl } from "@/lib/site-url";
+import { defaultSiteSettings } from "@/lib/site-settings";
+import { buildBlogPostingJsonLd } from "@/lib/structured-data";
 
-export function BlogArticle({ post }: { post: SiteBlogPost }) {
+export function BlogArticle({ post, settings = defaultSiteSettings }: { post: SiteBlogPost; settings?: SiteSettings }) {
   const cover = post.coverImagePath ? assetPath(post.coverImagePath) : null;
-  const base = getSiteBaseUrl();
-  const articleUrl = `${base}/blog/${post.slug}`;
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.metaDescription || post.excerpt,
-    image: cover,
-    datePublished: post.publishedAt,
-    dateModified: post.updatedAt,
-    author: post.author ? { "@type": "Person", name: post.author } : undefined,
-    publisher: {
-      "@type": "Organization",
-      name: "Arabana Özel"
-    },
-    mainEntityOfPage: articleUrl
-  };
+  const jsonLd = buildBlogPostingJsonLd(post, settings);
 
   return (
     <article className="site-container py-8">

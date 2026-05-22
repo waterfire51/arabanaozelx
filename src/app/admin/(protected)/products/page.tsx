@@ -125,6 +125,43 @@ function ProductForm({
         <span className="form-label">Açıklama</span>
         <textarea name="description" className="form-input min-h-[90px]" defaultValue={product?.description || ""} />
       </label>
+      <div className="rounded-xl border border-[#ee3625]/15 bg-[#fff8f7] p-4">
+        <h4 className="text-sm font-black text-[#c82014]">Ürün SEO</h4>
+        <div className="mt-3 grid gap-3">
+          <label>
+            <span className="form-label">Meta başlık</span>
+            <input name="metaTitle" className="form-input" defaultValue={product?.metaTitle || ""} placeholder="Boşsa ürün adından üretilir" />
+          </label>
+          <label>
+            <span className="form-label">Meta açıklama</span>
+            <textarea
+              name="metaDescription"
+              className="form-input min-h-[64px]"
+              defaultValue={product?.metaDescription || ""}
+              placeholder="Boşsa kısa açıklama veya ürün açıklaması kullanılır"
+            />
+          </label>
+          <label>
+            <span className="form-label">SEO içerik</span>
+            <textarea
+              name="seoBody"
+              className="form-input min-h-[110px]"
+              defaultValue={product?.seoBody || ""}
+              placeholder="Ürünün ölçü, malzeme, kullanım ve sipariş detaylarını özgün şekilde yazın"
+            />
+          </label>
+          <div className="grid gap-3 md:grid-cols-2">
+            <label>
+              <span className="form-label">Anahtar kelimeler</span>
+              <input name="metaKeywords" className="form-input" defaultValue={product?.metaKeywords || ""} />
+            </label>
+            <label>
+              <span className="form-label">OG görsel yolu</span>
+              <input name="ogImagePath" className="form-input" defaultValue={product?.ogImagePath || ""} placeholder="Boşsa ürün görseli" />
+            </label>
+          </div>
+        </div>
+      </div>
       <label>
         <span className="form-label">Varyantlar JSON</span>
         <textarea name="variants" className="form-input min-h-[160px] font-mono text-xs" defaultValue={variants} />

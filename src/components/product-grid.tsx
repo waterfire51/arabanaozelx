@@ -7,9 +7,6 @@ export function ProductGrid({ products }: { products: SiteProduct[] }) {
     <section className="site-container py-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-bold text-black">Kişiye Özel Oto Aksesuarlar</h1>
-        <Link href="/admin" className="text-xs font-semibold text-red-600">
-          Yönet
-        </Link>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">

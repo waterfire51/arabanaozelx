@@ -4,6 +4,7 @@ import { SiteSettingsProvider } from "@/components/site-settings-context";
 import { getSiteSettings } from "@/lib/data";
 import { resolveSiteBranding, resolveSiteSeo } from "@/lib/site-settings";
 import { buildPageMetadata } from "@/lib/seo";
+import { buildOrganizationJsonLd } from "@/lib/structured-data";
 import "./globals.css";
 
 const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim();
@@ -48,10 +49,12 @@ export default async function RootLayout({
 }>) {
   const settings = await getSiteSettings();
   const branding = resolveSiteBranding(settings);
+  const organizationJsonLd = buildOrganizationJsonLd(settings);
 
   return (
     <html lang="tr">
       <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         {branding.faviconUrl ? <link rel="icon" href={branding.faviconUrl} /> : null}
         {branding.logoUrl ? <link rel="preload" as="image" href={branding.logoUrl} /> : null}
         <link rel="stylesheet" href="/assets/css/vendor.min.css" />

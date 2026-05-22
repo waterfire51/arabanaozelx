@@ -394,6 +394,18 @@ export function ProductDesigner({ product }: { product: SiteProduct }) {
         }}
       />
 
+      {product.description || product.seoBody ? (
+        <section className="site-card mt-6 p-4 sm:p-5">
+          <h2 className="text-base font-black text-black">{product.name} Hakkında</h2>
+          {product.description ? (
+            <p className="mt-3 text-sm leading-7 text-gray-700">{product.description}</p>
+          ) : null}
+          {product.seoBody ? (
+            <div className="mt-4 whitespace-pre-line text-sm leading-7 text-gray-700">{product.seoBody}</div>
+          ) : null}
+        </section>
+      ) : null}
+
       <ProductDetailNotices productSlug={product.slug} />
     </div>
   );

@@ -25,10 +25,15 @@ model Product {
   name             String
   shortDescription String?
   description      String?
+  seoBody          String?          @db.Text
   imagePath        String
   price            Decimal          @db.Decimal(10, 2)
   compareAtPrice   Decimal?         @db.Decimal(10, 2)
   badge            String?
+  metaTitle        String?
+  metaDescription  String?          @db.Text
+  metaKeywords     String?
+  ogImagePath      String?
   active           Boolean          @default(true)
   featured         Boolean          @default(true)
   customizable     Boolean          @default(true)

@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { blogPostHref } from "@/lib/blog";
 import { hasDatabaseUrl } from "@/lib/database";
 import { fallbackBlogPosts } from "@/lib/fallback-blog";
-import { fallbackPages, fallbackProducts } from "@/lib/fallback";
+import { fallbackCategories, fallbackPages, fallbackProducts } from "@/lib/fallback";
 import { hrefForSlug } from "@/lib/paths";
 import { prisma } from "@/lib/prisma";
 import { getSiteBaseUrl } from "@/lib/site-url";
@@ -43,6 +43,9 @@ export async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     for (const product of fallbackProducts.filter((p) => p.active)) {
       urls.push(entry(base, hrefForSlug(product.slug), now, { priority: 0.8, changeFrequency: "weekly" }));
     }
+    for (const category of fallbackCategories) {
+      urls.push(entry(base, `/kategori/${category.slug}`, now, { priority: 0.78, changeFrequency: "weekly" }));
+    }
     for (const page of fallbackPages) {
       urls.push(entry(base, hrefForSlug(page.slug), now, { priority: 0.6, changeFrequency: "monthly" }));
     }
@@ -58,8 +61,12 @@ export async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    const [products, pages, posts] = await Promise.all([
+    const [products, categories, pages, posts] = await Promise.all([
       prisma.product.findMany({
+        where: { active: true },
+        select: { slug: true, updatedAt: true }
+      }),
+      prisma.category.findMany({
         where: { active: true },
         select: { slug: true, updatedAt: true }
       }),
@@ -76,6 +83,12 @@ export async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     for (const product of products) {
       urls.push(
         entry(base, hrefForSlug(product.slug), product.updatedAt, { priority: 0.85, changeFrequency: "weekly" })
+      );
+    }
+
+    for (const category of categories) {
+      urls.push(
+        entry(base, `/kategori/${category.slug}`, category.updatedAt, { priority: 0.78, changeFrequency: "weekly" })
       );
     }
 

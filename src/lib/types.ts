@@ -21,10 +21,15 @@ export type SiteProduct = {
   name: string;
   shortDescription?: string | null;
   description?: string | null;
+  seoBody?: string | null;
   imagePath: string;
   price: number;
   compareAtPrice?: number | null;
   badge?: string | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  metaKeywords?: string | null;
+  ogImagePath?: string | null;
   active?: boolean;
   featured?: boolean;
   customizable?: boolean;

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogArticle } from "@/components/blog-article";
 import { resolveBlogSeo } from "@/lib/blog";
-import { getBlogPostBySlug } from "@/lib/data";
+import { getBlogPostBySlug, getSiteSettings } from "@/lib/data";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -14,22 +14,22 @@ type BlogDetailPageProps = {
 
 export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+  const [post, settings] = await Promise.all([getBlogPostBySlug(slug), getSiteSettings()]);
 
   if (!post) {
     return { title: "Yazı bulunamadı" };
   }
 
-  return buildPageMetadata(resolveBlogSeo(post));
+  return buildPageMetadata(resolveBlogSeo(post, settings.siteName));
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+  const [post, settings] = await Promise.all([getBlogPostBySlug(slug), getSiteSettings()]);
 
   if (!post) {
     notFound();
   }
 
-  return <BlogArticle post={post} />;
+  return <BlogArticle post={post} settings={settings} />;
 }

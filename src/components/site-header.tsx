@@ -9,16 +9,7 @@ import { useSiteBranding } from "@/components/site-settings-context";
 import { WhatsAppFloatButton } from "@/components/whatsapp-float-button";
 
 function categoryHref(slug: string) {
-  const map: Record<string, string> = {
-    plakalik: "/plakalik/otomobil",
-    "motor-plakalik": "/plakalik/motor",
-    "kapi-esigi": "/kapiesigi",
-    anahtarlik: "/anahtarlik",
-    "oto-aksesuar": "/guneslik",
-    konfor: "/belyastigi"
-  };
-
-  return map[slug] ?? `/${slug}`;
+  return `/kategori/${slug}`;
 }
 
 type SiteHeaderProps = {

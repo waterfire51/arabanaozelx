@@ -54,10 +54,15 @@ function serializeProduct(product: any): SiteProduct {
     name: product.name,
     shortDescription: product.shortDescription,
     description: product.description,
+    seoBody: product.seoBody ?? null,
     imagePath: product.imagePath,
     price: toNumber(product.price),
     compareAtPrice: product.compareAtPrice ? toNumber(product.compareAtPrice) : null,
     badge: product.badge,
+    metaTitle: product.metaTitle ?? null,
+    metaDescription: product.metaDescription ?? null,
+    metaKeywords: product.metaKeywords ?? null,
+    ogImagePath: product.ogImagePath ?? null,
     active: product.active,
     featured: product.featured,
     customizable: product.customizable,
@@ -178,6 +183,52 @@ export async function getProductBySlug(slug: string) {
     return product ? serializeProduct(product) : null;
   } catch {
     return fallbackProducts.find((product) => product.slug === cleanSlug) ?? null;
+  }
+}
+
+export async function getCategoryLandingData(slug: string) {
+  const cleanSlug = normalizeLegacySlug(slug);
+
+  if (!hasDatabaseUrl()) {
+    const category = fallbackCategories.find((item) => item.slug === cleanSlug) ?? null;
+    const products = fallbackProducts.filter((product) => product.category?.slug === cleanSlug && product.active !== false);
+    return category ? { category, products, dbReady: false } : null;
+  }
+
+  try {
+    const category = await prisma.category.findFirst({
+      where: { slug: cleanSlug, active: true },
+      include: {
+        products: {
+          where: { active: true },
+          include: {
+            category: true,
+            variants: { orderBy: { sortOrder: "asc" } }
+          },
+          orderBy: { sortOrder: "asc" }
+        }
+      }
+    });
+
+    if (!category) {
+      return null;
+    }
+
+    return {
+      category: {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        iconPath: category.iconPath,
+        sortOrder: category.sortOrder
+      },
+      products: category.products.map(serializeProduct),
+      dbReady: true
+    };
+  } catch {
+    const category = fallbackCategories.find((item) => item.slug === cleanSlug) ?? null;
+    const products = fallbackProducts.filter((product) => product.category?.slug === cleanSlug && product.active !== false);
+    return category ? { category, products, dbReady: false } : null;
   }
 }
 

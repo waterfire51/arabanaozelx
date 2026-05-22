@@ -1,4 +1,4 @@
-import type { SiteSettings } from "@/lib/types";
+import type { SiteCategory, SiteProduct, SiteSettings } from "@/lib/types";
 import { assetPath } from "@/lib/assets";
 import { truncateText } from "@/lib/seo";
 
@@ -97,6 +97,57 @@ export function resolvePageSeo(
     path: `/${page.slug}`,
     imagePath: brandImagePathForSeo(settings),
     keywords: page.metaKeywords || settings.defaultMetaKeywords
+  };
+}
+
+function cleanDescriptionText(value: string | null | undefined) {
+  return String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function resolveProductSeo(product: SiteProduct, settings: SiteSettings = defaultSiteSettings) {
+  const baseTitle = product.metaTitle?.trim() || `${product.name} | Kişiye Özel Oto Aksesuar`;
+  const descriptionSource =
+    product.metaDescription?.trim() ||
+    product.shortDescription?.trim() ||
+    product.description?.trim() ||
+    product.seoBody?.trim() ||
+    `${product.name} modellerini Arabana Özel'de kişiselleştirin. Hızlı üretim, güvenli ödeme ve Türkiye geneli kargo avantajıyla sipariş verin.`;
+  const formattedTitle = applyTitleTemplate(settings.titleTemplate, baseTitle, settings.siteName);
+
+  return {
+    title: formattedTitle,
+    description: truncateText(cleanDescriptionText(descriptionSource), 160),
+    path: `/${product.slug}`,
+    imagePath: product.ogImagePath || product.imagePath || brandImagePathForSeo(settings),
+    keywords:
+      product.metaKeywords ||
+      [product.name, product.category?.name, "kişiye özel oto aksesuar", "arabana özel"].filter(Boolean).join(", ")
+  };
+}
+
+export function resolveCategorySeo(
+  category: SiteCategory,
+  products: SiteProduct[] = [],
+  settings: SiteSettings = defaultSiteSettings
+) {
+  const title = `${category.name} Modelleri ve Fiyatları`;
+  const productNames = products
+    .slice(0, 4)
+    .map((product) => product.name)
+    .join(", ");
+  const description = productNames
+    ? `${category.name} kategorisinde ${productNames} ve daha fazla kişiye özel oto aksesuar modelini inceleyin. Hızlı üretim ve güvenli sipariş avantajı.`
+    : `${category.name} kategorisindeki kişiye özel oto aksesuar modellerini inceleyin. Hızlı üretim ve güvenli sipariş avantajı.`;
+
+  return {
+    title: applyTitleTemplate(settings.titleTemplate, title, settings.siteName),
+    description: truncateText(description, 160),
+    path: `/kategori/${category.slug}`,
+    imagePath: category.iconPath || products[0]?.imagePath || brandImagePathForSeo(settings),
+    keywords: [category.name, "oto aksesuar", "kişiye özel", "arabana özel"].filter(Boolean).join(", ")
   };
 }
 

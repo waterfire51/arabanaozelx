@@ -29,7 +29,7 @@ export function buildPageMetadata(input: SeoInput): Metadata {
   const resolvedImage = resolveAbsoluteImage(base, input.imagePath);
 
   return {
-    title: input.title,
+    title: { absolute: input.title },
     description: input.description,
     keywords: input.keywords?.split(",").map((k) => k.trim()).filter(Boolean),
     alternates: { canonical: url },

@@ -53,6 +53,9 @@ export async function saveProduct(formData: FormData) {
   const imagePath = normalizeStoredAssetPath(
     migrateLegacyAssetPath(String(formData.get("imagePath") || ""), slug)
   );
+  const ogImagePath = normalizeStoredAssetPath(
+    migrateLegacyAssetPath(String(formData.get("ogImagePath") || ""), slug)
+  );
   const price = numberValue(formData.get("price"));
   const categoryId = String(formData.get("categoryId") || "");
   const variants = parseVariants(String(formData.get("variants") || ""), price);
@@ -65,6 +68,11 @@ export async function saveProduct(formData: FormData) {
     badge: String(formData.get("badge") || "") || null,
     shortDescription: String(formData.get("shortDescription") || "") || null,
     description: String(formData.get("description") || "") || null,
+    seoBody: String(formData.get("seoBody") || "") || null,
+    metaTitle: String(formData.get("metaTitle") || "") || null,
+    metaDescription: String(formData.get("metaDescription") || "") || null,
+    metaKeywords: String(formData.get("metaKeywords") || "") || null,
+    ogImagePath: ogImagePath || null,
     categoryId: categoryId || null,
     active: boolValue(formData.get("active")),
     featured: boolValue(formData.get("featured")),
