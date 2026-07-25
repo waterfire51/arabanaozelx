@@ -204,13 +204,18 @@ main header:not(.site-header) {
 
 .plate-text {
   z-index: 1;
-  width: 72%;
+  width: 68%;
+  max-width: calc(100% - 188px);
   padding: 0 8px;
   font-size: clamp(14px, 4.5vw, 28px);
   font-weight: 800;
   line-height: 1.05;
   text-transform: uppercase;
   overflow-wrap: anywhere;
+}
+
+.plate-preview:has(> .plate-symbol-wide) .plate-text {
+  width: 54%;
 }
 
 .plate-text-input {
@@ -419,7 +424,8 @@ main header:not(.site-header) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 54px;
+  height: calc(100% - clamp(8px, 1.5vw, 12px));
+  max-height: 54px;
   width: auto;
   max-width: 72px;
   padding: 0;
@@ -431,7 +437,8 @@ main header:not(.site-header) {
 
 .plate-symbol img {
   display: block;
-  height: 54px;
+  height: 100%;
+  max-height: 54px;
   width: auto;
   max-width: 72px;
   object-fit: contain;
@@ -617,18 +624,23 @@ main header:not(.site-header) {
   }
 
   .plate-text {
-    width: 68%;
+    width: 66%;
+    max-width: calc(100% - 80px);
     font-size: clamp(8px, 2.6vw, 11px);
     line-height: 1;
   }
 
+  .plate-preview:has(> .plate-symbol-wide) .plate-text {
+    width: 54%;
+  }
+
   .plate-symbol {
-    height: 18px;
+    height: calc(100% - 8px);
     max-width: 28px;
   }
 
   .plate-symbol img {
-    height: 18px;
+    height: 100%;
     max-width: 28px;
   }
 
@@ -637,7 +649,7 @@ main header:not(.site-header) {
   }
 
   .plate-symbol-wide img {
-    height: 18px;
+    height: 100%;
     max-width: min(36vw, 72px);
   }
 
