@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Box, FileText, ImageIcon, Images, LayoutDashboard, LogOut, Newspaper, Settings, Shapes, ShoppingBag } from "lucide-react";
+import { Box, FileText, ImageIcon, Images, LayoutDashboard, LogOut, Newspaper, Settings, Shapes, ShoppingBag, Tags } from "lucide-react";
 import { logout } from "@/app/admin/login/actions";
 import { getSiteSettings } from "@/lib/data";
 import { brandingAssetUrl, resolveSiteBranding } from "@/lib/site-settings";
@@ -7,6 +7,7 @@ import { brandingAssetUrl, resolveSiteBranding } from "@/lib/site-settings";
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Ürünler", icon: Box },
+  { href: "/admin/categories", label: "Kategoriler / Menü", icon: Tags },
   { href: "/admin/slides", label: "Anasayfa", icon: Images },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },
   { href: "/admin/gallery", label: "Galeri", icon: ImageIcon },

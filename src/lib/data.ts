@@ -92,7 +92,53 @@ async function loadHomeVideo(): Promise<SiteHomeVideo> {
   return fallbackHomeVideo;
 }
 
-export async function getHomeData() {
+type HomeData = {
+  slides: SiteHeroSlide[];
+  homeVideo: SiteHomeVideo;
+  categories: SiteCategory[];
+  products: SiteProduct[];
+  usingFallback: boolean;
+  fallbackReason?: DbFallbackReason;
+};
+
+let lastSuccessfulHomeData: HomeData | null = null;
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function queryHomeData(): Promise<HomeData> {
+  const [slides, categories, products, homeVideo] = await Promise.all([
+    prisma.heroSlide.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" }
+    }),
+    prisma.category.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" }
+    }),
+    prisma.product.findMany({
+      where: { active: true, featured: true },
+      include: {
+        category: true,
+        variants: { orderBy: { sortOrder: "asc" } }
+      },
+      orderBy: { sortOrder: "asc" }
+    }),
+    loadHomeVideo()
+  ]);
+
+  return {
+    slides: slides as SiteHeroSlide[],
+    homeVideo,
+    categories: categories as SiteCategory[],
+    products: products.map(serializeProduct),
+    usingFallback: false,
+    fallbackReason: undefined
+  };
+}
+
+const getHomeDataForRequest = cache(async (): Promise<HomeData> => {
   if (!hasDatabaseUrl()) {
     return {
       slides: fallbackSlides,
@@ -104,46 +150,33 @@ export async function getHomeData() {
     };
   }
 
-  try {
-    const [slides, categories, products, homeVideo] = await Promise.all([
-      prisma.heroSlide.findMany({
-        where: { active: true },
-        orderBy: { sortOrder: "asc" }
-      }),
-      prisma.category.findMany({
-        where: { active: true },
-        orderBy: { sortOrder: "asc" }
-      }),
-      prisma.product.findMany({
-        where: { active: true, featured: true },
-        include: {
-          category: true,
-          variants: { orderBy: { sortOrder: "asc" } }
-        },
-        orderBy: { sortOrder: "asc" }
-      }),
-      loadHomeVideo()
-    ]);
-
-    return {
-      slides: slides as SiteHeroSlide[],
-      homeVideo,
-      categories: categories as SiteCategory[],
-      products: products.map(serializeProduct),
-      usingFallback: false,
-      fallbackReason: undefined
-    };
-  } catch (error) {
-    console.error("[getHomeData] Veritabanı okunamadı:", error);
-    return {
-      slides: fallbackSlides,
-      homeVideo: fallbackHomeVideo,
-      categories: fallbackCategories,
-      products: fallbackProducts,
-      usingFallback: true,
-      fallbackReason: "connection_error" as DbFallbackReason
-    };
+  let lastError: unknown;
+  for (const retryDelay of [0, 250, 750]) {
+    if (retryDelay) {
+      await wait(retryDelay);
+    }
+    try {
+      const data = await queryHomeData();
+      lastSuccessfulHomeData = data;
+      return data;
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  console.error("[getHomeData] Veritabanı yeniden denemelere rağmen okunamadı:", lastError);
+  return lastSuccessfulHomeData ?? {
+    slides: fallbackSlides,
+    homeVideo: fallbackHomeVideo,
+    categories: fallbackCategories,
+    products: fallbackProducts,
+    usingFallback: true,
+    fallbackReason: "connection_error" as DbFallbackReason
+  };
+});
+
+export async function getHomeData() {
+  return getHomeDataForRequest();
 }
 
 export async function getAdminHomeVideo() {

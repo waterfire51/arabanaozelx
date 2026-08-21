@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, FileText, Home, ImageIcon, Menu, Phone, Rss, Truck, X } from "lucide-react";
+import { BookOpen, FileText, Home, ImageIcon, Menu, Phone, Rss, Tags, Truck, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { SiteCategory } from "@/lib/types";
@@ -15,17 +15,6 @@ function categoryHref(slug: string) {
 type SiteHeaderProps = {
   categories?: SiteCategory[];
 };
-
-const keywordLinks = [
-  { label: "Plakalık", href: "/plakalik/otomobil" },
-  { label: "Kapı Eşiği", href: "/kapiesigi" },
-  { label: "Kemer Kılıf", href: "/boyunyastigi" },
-  { label: "Oto Anten", href: "/kopekbaligi" },
-  { label: "Anahtarlık", href: "/anahtarlik" },
-  { label: "Bagaj Filesi", href: "/bagajfile" },
-  { label: "Oto Cam Suyu", href: "/camsuyu" },
-  { label: "Motosiklet Plakalık", href: "/plakalik/motor" }
-];
 
 const menuLinks = [
   { label: "Anasayfa", href: "/", icon: Home },
@@ -88,6 +77,17 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
           </div>
 
           <nav className="mt-6 flex-1 overflow-y-auto">
+            {categories.map((category) => (
+              <Link
+                key={category.slug}
+                href={categoryHref(category.slug)}
+                className="flex items-center gap-3 border-b-2 border-white px-2 py-4 text-[#06142d] hover:text-red-600"
+                onClick={() => setOpen(false)}
+              >
+                <Tags size={16} />
+                {category.name}
+              </Link>
+            ))}
             {menuLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -129,13 +129,13 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
           </Link>
 
           <div className="hidden flex-1 justify-center gap-2 lg:flex">
-            {keywordLinks.slice(0, 6).map((link) => (
+            {categories.slice(0, 6).map((category) => (
               <Link
-                key={link.href}
-                href={link.href}
+                key={category.slug}
+                href={categoryHref(category.slug)}
                 className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:border-red-500 hover:text-red-600"
               >
-                {link.label}
+                {category.name}
               </Link>
             ))}
           </div>

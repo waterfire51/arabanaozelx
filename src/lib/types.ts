@@ -4,6 +4,7 @@ export type SiteCategory = {
   slug: string;
   iconPath?: string | null;
   sortOrder?: number;
+  active?: boolean;
 };
 
 export type SiteProductVariant = {

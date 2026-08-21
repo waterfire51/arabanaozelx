@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+.initial-site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: #fff;
+}
+
+.initial-site-loader-logo {
+  width: min(42vw, 180px);
+  max-height: 80px;
+  object-fit: contain;
+}
+
+.initial-site-loader-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #f3c7c3;
+  border-top-color: #ee3625;
+  border-radius: 9999px;
+  animation: initial-site-loader-spin 0.75s linear infinite;
+}
+
+@keyframes initial-site-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .initial-site-loader-spinner {
+    animation-duration: 1.5s;
+  }
+}
+
 :root {
   color-scheme: light;
   --brand-red: #ee3625;

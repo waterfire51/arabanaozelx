@@ -116,6 +116,56 @@ export async function deleteProduct(formData: FormData) {
   revalidateSitemap();
 }
 
+export async function saveCategory(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  const name = String(formData.get("name") || "").trim();
+  const slug = normalizeLegacySlug(String(formData.get("slug") || ""));
+  const iconPath = normalizeStoredAssetPath(String(formData.get("iconPath") || ""));
+
+  if (!name || !slug) {
+    throw new Error("Kategori adı ve adresi gerekli.");
+  }
+
+  const payload = {
+    name,
+    slug,
+    iconPath: iconPath || null,
+    sortOrder: numberValue(formData.get("sortOrder")),
+    active: boolValue(formData.get("active"))
+  };
+
+  if (id) {
+    await prisma.category.update({ where: { id }, data: payload });
+  } else {
+    await prisma.category.create({ data: payload });
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/categories");
+  revalidateSitemap();
+  redirect("/admin/categories");
+}
+
+export async function deleteCategory(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  if (id) {
+    await prisma.$transaction([
+      prisma.product.updateMany({ where: { categoryId: id }, data: { categoryId: null } }),
+      prisma.category.delete({ where: { id } })
+    ]);
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/products");
+  revalidateSitemap();
+  redirect("/admin/categories");
+}
+
 export async function savePage(formData: FormData) {
   await requireAdmin();
 
