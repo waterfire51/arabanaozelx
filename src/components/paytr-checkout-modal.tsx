@@ -19,14 +19,8 @@ export function PaytrCheckoutModal({ open, token, orderNo, onClose }: PaytrCheck
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const script = document.createElement("script");
-    script.src = "https://www.paytr.com/js/iframeResizer.min.js";
-    script.async = true;
-    document.body.appendChild(script);
-
     return () => {
       document.body.style.overflow = previousOverflow;
-      script.remove();
     };
   }, [open]);
 
@@ -35,10 +29,10 @@ export function PaytrCheckoutModal({ open, token, orderNo, onClose }: PaytrCheck
   }
 
   return (
-    <div className="fixed inset-0 z-[1100] flex items-end justify-center p-0 sm:items-center sm:p-4" role="dialog" aria-modal aria-labelledby="paytr-title">
+    <div className="fixed inset-0 z-[1100] flex items-stretch justify-center p-0 sm:items-center sm:p-4" role="dialog" aria-modal aria-labelledby="paytr-title">
       <button type="button" className="absolute inset-0 bg-black/60" aria-label="Kapat" onClick={onClose} />
-      <div className="relative flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-xl bg-white shadow-2xl sm:rounded-xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+      <div className="relative flex h-[100dvh] max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(94dvh,900px)] sm:max-h-[94dvh] sm:rounded-xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
           <div>
             <h2 id="paytr-title" className="text-sm font-black text-black sm:text-base">
               Güvenli Ödeme
@@ -54,17 +48,16 @@ export function PaytrCheckoutModal({ open, token, orderNo, onClose }: PaytrCheck
             <X size={22} />
           </button>
         </div>
-        <div className="min-h-[480px] flex-1 overflow-hidden p-2 sm:p-4">
+        <div className="min-h-0 flex-1 overflow-hidden p-0 sm:p-2">
           <iframe
             src={`https://www.paytr.com/odeme/guvenli/${token}`}
             id="paytriframe"
             title="PayTR ödeme"
-            className="h-[min(72vh,640px)] w-full"
+            className="block h-full min-h-0 w-full"
             frameBorder={0}
-            scrolling="no"
           />
         </div>
-        <p className="border-t border-gray-100 px-4 py-2 text-center text-[11px] text-gray-500">
+        <p className="shrink-0 border-t border-gray-100 px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 text-center text-[11px] text-gray-500">
           Ödeme tamamlandığında siparişiniz otomatik onaylanır.
         </p>
       </div>
