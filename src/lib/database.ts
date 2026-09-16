@@ -15,14 +15,31 @@ export function prismaDatasourceUrl() {
     return base;
   }
 
-  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  try {
+    const url = new URL(base);
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    const isSupabasePooler = url.hostname.endsWith(".pooler.supabase.com");
 
-  if (!isServerless || /connection_limit=/i.test(base)) {
-    return base;
+    // Supabase'in transaction pooler'ı serverless çalıştırma modeline daha
+    // uygundur. 5432 session pooler, yoğun Next.js prefetch trafiğinde tek
+    // bağlantıyı kolayca kilitliyordu.
+    if (isSupabasePooler) {
+      url.port = "6543";
+      url.searchParams.set("pgbouncer", "true");
+    }
+
+    if (isServerless || isSupabasePooler) {
+      url.searchParams.set("connection_limit", "5");
+      url.searchParams.set("pool_timeout", "10");
+    }
+
+    return url.toString();
+  } catch {
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    if (!isServerless) return base;
+    const separator = base.includes("?") ? "&" : "?";
+    return `${base}${separator}connection_limit=5&pool_timeout=10`;
   }
-
-  const separator = base.includes("?") ? "&" : "?";
-  return `${base}${separator}connection_limit=1`;
 }
 
 export type DbFallbackReason = "missing_url" | "connection_error";

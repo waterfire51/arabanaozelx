@@ -9,7 +9,8 @@ import "./globals.css";
 
 const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 
-export const dynamic = "force-dynamic";
+export const preferredRegion = "hnd1";
+export const revalidate = 120;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();

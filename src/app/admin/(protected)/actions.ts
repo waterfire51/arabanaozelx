@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { migrateLegacyAssetPath, normalizeStoredAssetPath } from "@/lib/assets";
@@ -17,6 +17,10 @@ function boolValue(value: FormDataEntryValue | null) {
 function numberValue(value: FormDataEntryValue | null, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function refreshPublicData(...tags: string[]) {
+  for (const tag of tags) revalidateTag(tag);
 }
 
 type VariantInput = {
@@ -96,6 +100,7 @@ export async function saveProduct(formData: FormData) {
     }))
   });
 
+  refreshPublicData("public-home", "public-products", `public-product:${slug}`);
   revalidatePath("/");
   revalidatePath(`/${slug}`);
   revalidatePath("/admin/products");
@@ -111,6 +116,7 @@ export async function deleteProduct(formData: FormData) {
     await prisma.product.delete({ where: { id } });
   }
 
+  refreshPublicData("public-home", "public-products");
   revalidatePath("/");
   revalidatePath("/admin/products");
   revalidateSitemap();
@@ -142,6 +148,7 @@ export async function saveCategory(formData: FormData) {
     await prisma.category.create({ data: payload });
   }
 
+  refreshPublicData("public-home", "public-categories", "public-products");
   revalidatePath("/", "layout");
   revalidatePath("/admin/categories");
   revalidateSitemap();
@@ -159,6 +166,7 @@ export async function deleteCategory(formData: FormData) {
     ]);
   }
 
+  refreshPublicData("public-home", "public-categories", "public-products");
   revalidatePath("/", "layout");
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
@@ -193,6 +201,7 @@ export async function savePage(formData: FormData) {
     await prisma.page.create({ data: payload });
   }
 
+  refreshPublicData("public-pages", `public-page:${slug}`);
   revalidatePath(`/${slug}`);
   revalidatePath("/admin/pages");
   revalidatePath("/admin/settings");
@@ -243,6 +252,7 @@ export async function saveSiteSettings(formData: FormData) {
     update: payload
   });
 
+  refreshPublicData("public-settings");
   revalidatePath("/", "layout");
   revalidatePath("/admin/settings");
   revalidateSitemap();
@@ -275,6 +285,7 @@ export async function saveHomeVideo(formData: FormData) {
     }
   });
 
+  refreshPublicData("public-home");
   revalidatePath("/");
   revalidatePath("/admin/slides");
   redirect("/admin/slides");
@@ -307,6 +318,7 @@ export async function saveHeroSlide(formData: FormData) {
     await prisma.heroSlide.create({ data: payload });
   }
 
+  refreshPublicData("public-home");
   revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/admin/slides");
@@ -322,6 +334,7 @@ export async function deleteHeroSlide(formData: FormData) {
     await prisma.heroSlide.delete({ where: { id } });
   }
 
+  refreshPublicData("public-home");
   revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/admin/slides");
@@ -354,6 +367,7 @@ export async function saveGalleryImage(formData: FormData) {
     await prisma.galleryImage.create({ data: payload });
   }
 
+  refreshPublicData("public-gallery");
   revalidatePath("/galeri");
   revalidatePath("/admin/gallery");
   revalidateSitemap();
@@ -368,6 +382,7 @@ export async function deleteGalleryImage(formData: FormData) {
     await prisma.galleryImage.delete({ where: { id } });
   }
 
+  refreshPublicData("public-gallery");
   revalidatePath("/galeri");
   revalidatePath("/admin/gallery");
   revalidateSitemap();
@@ -437,6 +452,7 @@ export async function saveBlogPost(formData: FormData) {
     await prisma.blogPost.create({ data: payload });
   }
 
+  refreshPublicData("public-blog", `public-blog:${slug}`);
   revalidatePath("/blog");
   revalidatePath(`/blog/${slug}`);
   revalidatePath("/admin/blog");
@@ -456,6 +472,7 @@ export async function deleteBlogPost(formData: FormData) {
     }
   }
 
+  refreshPublicData("public-blog");
   revalidatePath("/blog");
   revalidatePath("/admin/blog");
   revalidateSitemap();

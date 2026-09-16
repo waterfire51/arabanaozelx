@@ -3,8 +3,7 @@ import { BlogCard } from "@/components/blog-card";
 import { getPublishedBlogPosts } from "@/lib/data";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 120;
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Blog | Arabana Özel",

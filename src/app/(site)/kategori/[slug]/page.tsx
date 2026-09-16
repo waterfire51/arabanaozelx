@@ -6,7 +6,7 @@ import { resolveCategorySeo } from "@/lib/page-seo";
 import { buildPageMetadata } from "@/lib/seo";
 import { buildBreadcrumbJsonLd, buildCategoryItemListJsonLd } from "@/lib/structured-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;

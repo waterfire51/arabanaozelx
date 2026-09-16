@@ -8,24 +8,14 @@ export function InitialSiteLoader() {
   const { logoUrl, siteName } = useSiteBranding();
 
   useEffect(() => {
-    const startedAt = performance.now();
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    const finish = () => {
-      const remaining = Math.max(0, 350 - (performance.now() - startedAt));
-      timer = setTimeout(() => setVisible(false), remaining);
-    };
-
-    if (document.readyState === "complete") {
-      finish();
-    } else {
-      window.addEventListener("load", finish, { once: true });
-      timer = setTimeout(() => setVisible(false), 4000);
-    }
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => setVisible(false));
+    });
+    const timer = setTimeout(() => setVisible(false), 800);
 
     return () => {
-      window.removeEventListener("load", finish);
-      if (timer) clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
     };
   }, []);
 

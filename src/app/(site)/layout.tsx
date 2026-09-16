@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { InitialSiteLoader } from "@/components/initial-site-loader";
 import { getHomeData } from "@/lib/data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const { categories } = await getHomeData();

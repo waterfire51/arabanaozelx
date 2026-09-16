@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { prisma } from "./prisma";
 import { fallbackCategories, fallbackHomeVideo, fallbackPages, fallbackProducts, fallbackSlides } from "./fallback";
 import { normalizeLegacySlug } from "./paths";
@@ -138,6 +139,11 @@ async function queryHomeData(): Promise<HomeData> {
   };
 }
 
+const getCachedHomeData = unstable_cache(queryHomeData, ["public-home-data"], {
+  revalidate: 120,
+  tags: ["public-home"]
+});
+
 const getHomeDataForRequest = cache(async (): Promise<HomeData> => {
   if (!hasDatabaseUrl()) {
     return {
@@ -156,7 +162,7 @@ const getHomeDataForRequest = cache(async (): Promise<HomeData> => {
       await wait(retryDelay);
     }
     try {
-      const data = await queryHomeData();
+      const data = await getCachedHomeData();
       lastSuccessfulHomeData = data;
       return data;
     } catch (error) {
@@ -197,7 +203,7 @@ export async function getAdminHomeVideo() {
   }
 }
 
-export async function getProductBySlug(slug: string) {
+const getProductBySlugForRequest = cache(async (slug: string) => {
   const cleanSlug = normalizeLegacySlug(slug);
 
   if (!hasDatabaseUrl()) {
@@ -205,21 +211,30 @@ export async function getProductBySlug(slug: string) {
   }
 
   try {
-    const product = await prisma.product.findUnique({
-      where: { slug: cleanSlug },
-      include: {
-        category: true,
-        variants: { orderBy: { sortOrder: "asc" } }
-      }
-    });
+    const product = await unstable_cache(
+      () =>
+        prisma.product.findUnique({
+          where: { slug: cleanSlug },
+          include: {
+            category: true,
+            variants: { orderBy: { sortOrder: "asc" } }
+          }
+        }),
+      ["public-product", cleanSlug],
+      { revalidate: 120, tags: ["public-products", `public-product:${cleanSlug}`] }
+    )();
 
     return product ? serializeProduct(product) : null;
   } catch {
     return fallbackProducts.find((product) => product.slug === cleanSlug) ?? null;
   }
+});
+
+export async function getProductBySlug(slug: string) {
+  return getProductBySlugForRequest(slug);
 }
 
-export async function getCategoryLandingData(slug: string) {
+const getCategoryLandingDataForRequest = cache(async (slug: string) => {
   const cleanSlug = normalizeLegacySlug(slug);
 
   if (!hasDatabaseUrl()) {
@@ -229,19 +244,24 @@ export async function getCategoryLandingData(slug: string) {
   }
 
   try {
-    const category = await prisma.category.findFirst({
-      where: { slug: cleanSlug, active: true },
-      include: {
-        products: {
-          where: { active: true },
+    const category = await unstable_cache(
+      () =>
+        prisma.category.findFirst({
+          where: { slug: cleanSlug, active: true },
           include: {
-            category: true,
-            variants: { orderBy: { sortOrder: "asc" } }
-          },
-          orderBy: { sortOrder: "asc" }
-        }
-      }
-    });
+            products: {
+              where: { active: true },
+              include: {
+                category: true,
+                variants: { orderBy: { sortOrder: "asc" } }
+              },
+              orderBy: { sortOrder: "asc" }
+            }
+          }
+        }),
+      ["public-category", cleanSlug],
+      { revalidate: 120, tags: ["public-categories", "public-products", `public-category:${cleanSlug}`] }
+    )();
 
     if (!category) {
       return null;
@@ -263,6 +283,10 @@ export async function getCategoryLandingData(slug: string) {
     const products = fallbackProducts.filter((product) => product.category?.slug === cleanSlug && product.active !== false);
     return category ? { category, products, dbReady: false } : null;
   }
+});
+
+export async function getCategoryLandingData(slug: string) {
+  return getCategoryLandingDataForRequest(slug);
 }
 
 function serializeBlogPost(row: {
@@ -301,16 +325,21 @@ function serializeBlogPost(row: {
   };
 }
 
-export async function getPublishedBlogPosts() {
+const getPublishedBlogPostsForRequest = cache(async () => {
   if (!hasDatabaseUrl()) {
     return { posts: fallbackBlogPosts, dbReady: false };
   }
 
   try {
-    const posts = await prisma.blogPost.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
-    });
+    const posts = await unstable_cache(
+      () =>
+        prisma.blogPost.findMany({
+          where: { status: "PUBLISHED" },
+          orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
+        }),
+      ["public-blog-posts"],
+      { revalidate: 120, tags: ["public-blog"] }
+    )();
 
     return {
       posts: posts.map(serializeBlogPost),
@@ -320,9 +349,13 @@ export async function getPublishedBlogPosts() {
     console.error("[getPublishedBlogPosts]", error);
     return { posts: fallbackBlogPosts, dbReady: false };
   }
+});
+
+export async function getPublishedBlogPosts() {
+  return getPublishedBlogPostsForRequest();
 }
 
-export async function getBlogPostBySlug(slug: string) {
+const getBlogPostBySlugForRequest = cache(async (slug: string) => {
   const cleanSlug = normalizeLegacySlug(slug);
 
   if (!hasDatabaseUrl()) {
@@ -330,14 +363,20 @@ export async function getBlogPostBySlug(slug: string) {
   }
 
   try {
-    const post = await prisma.blogPost.findFirst({
-      where: { slug: cleanSlug, status: "PUBLISHED" }
-    });
+    const post = await unstable_cache(
+      () => prisma.blogPost.findFirst({ where: { slug: cleanSlug, status: "PUBLISHED" } }),
+      ["public-blog-post", cleanSlug],
+      { revalidate: 120, tags: ["public-blog", `public-blog:${cleanSlug}`] }
+    )();
 
     return post ? serializeBlogPost(post) : null;
   } catch {
     return fallbackBlogPosts.find((post) => post.slug === cleanSlug) ?? null;
   }
+});
+
+export async function getBlogPostBySlug(slug: string) {
+  return getBlogPostBySlugForRequest(slug);
 }
 
 export async function getAdminBlogPosts() {
@@ -360,7 +399,7 @@ export async function getAdminBlogPosts() {
   }
 }
 
-export const getSiteSettings = cache(async function getSiteSettings(): Promise<SiteSettings> {
+const querySiteSettings = unstable_cache(async (): Promise<SiteSettings> => {
   if (!hasDatabaseUrl()) {
     return defaultSiteSettings;
   }
@@ -389,9 +428,14 @@ export const getSiteSettings = cache(async function getSiteSettings(): Promise<S
     console.error("[getSiteSettings]", error);
     return defaultSiteSettings;
   }
+}, ["public-site-settings"], {
+  revalidate: 300,
+  tags: ["public-settings"]
 });
 
-export async function getPageBySlug(slug: string) {
+export const getSiteSettings = cache(querySiteSettings);
+
+const getPageBySlugForRequest = cache(async (slug: string) => {
   const cleanSlug = normalizeLegacySlug(slug);
 
   if (!hasDatabaseUrl()) {
@@ -399,26 +443,37 @@ export async function getPageBySlug(slug: string) {
   }
 
   try {
-    const page = await prisma.page.findFirst({
-      where: { slug: cleanSlug, status: "PUBLISHED" }
-    });
+    const page = await unstable_cache(
+      () => prisma.page.findFirst({ where: { slug: cleanSlug, status: "PUBLISHED" } }),
+      ["public-page", cleanSlug],
+      { revalidate: 300, tags: ["public-pages", `public-page:${cleanSlug}`] }
+    )();
 
     return page as SitePage | null;
   } catch {
     return fallbackPages.find((page) => page.slug === cleanSlug) ?? null;
   }
+});
+
+export async function getPageBySlug(slug: string) {
+  return getPageBySlugForRequest(slug);
 }
 
-export async function getPublishedGalleryImages() {
+const getPublishedGalleryImagesForRequest = cache(async () => {
   if (!hasDatabaseUrl()) {
     return { images: fallbackGalleryImages(), dbReady: false };
   }
 
   try {
-    const rows = await prisma.galleryImage.findMany({
-      where: { active: true },
-      orderBy: { sortOrder: "asc" }
-    });
+    const rows = await unstable_cache(
+      () =>
+        prisma.galleryImage.findMany({
+          where: { active: true },
+          orderBy: { sortOrder: "asc" }
+        }),
+      ["public-gallery"],
+      { revalidate: 300, tags: ["public-gallery"] }
+    )();
 
     if (rows.length === 0) {
       return { images: fallbackGalleryImages(), dbReady: true };
@@ -432,6 +487,10 @@ export async function getPublishedGalleryImages() {
     console.error("[getPublishedGalleryImages]", error);
     return { images: fallbackGalleryImages(), dbReady: false };
   }
+});
+
+export async function getPublishedGalleryImages() {
+  return getPublishedGalleryImagesForRequest();
 }
 
 export async function getAdminGalleryImages() {

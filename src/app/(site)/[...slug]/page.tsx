@@ -8,7 +8,7 @@ import { resolvePageSeo, resolveProductSeo } from "@/lib/page-seo";
 import { buildPageMetadata } from "@/lib/seo";
 import { buildBreadcrumbJsonLd, buildProductJsonLd } from "@/lib/structured-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 type SlugPageProps = {
   params: Promise<{ slug: string[] }>;

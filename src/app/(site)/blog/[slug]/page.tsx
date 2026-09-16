@@ -5,8 +5,7 @@ import { resolveBlogSeo } from "@/lib/blog";
 import { getBlogPostBySlug, getSiteSettings } from "@/lib/data";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 120;
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;
